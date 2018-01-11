@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.uuzu.mktgo.mapper.DateMonthMapper">
+    <resultMap id="BaseResultMap" type="com.uuzu.mktgo.pojo.DateMonth">
+        <result column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="Month" property="month" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="queryMaxMonth" resultType="java.lang.String">
+        select max(Month)  from Data_Month  ;
+    </select>
+
+
+    <select id="queryAllMonth" resultType="java.lang.String">
+        select Month  from Data_Month order by Month desc ;
+    </select>
+
+
+</mapper>

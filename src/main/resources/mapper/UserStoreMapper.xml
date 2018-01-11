@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.uuzu.mktgo.mapper.PhoneMapper">
+    <resultMap id="BaseResultMap" type="com.uuzu.mktgo.pojo.Phone">
+        <result column="phoneid" property="phoneid" jdbcType="VARCHAR"/>
+        <result column="card" property="card" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="queryPhoneLimit10" resultMap="BaseResultMap">
+        select * from phone limit 10
+    </select>
+
+</mapper>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.uuzu.mktgo.mapper.DictMapper">
+    <resultMap id="BaseResultMap" type="com.uuzu.mktgo.pojo.DictModel">
+        <result column="per_key" property="per_key" jdbcType="VARCHAR"/>
+        <result column="per_value" property="per_value" jdbcType="VARCHAR"/>
+        <result column="per_name" property="per_name" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="queryNameInfo" resultType="java.lang.String">
+        select DISTINCT per_name from mapping_person_summary_sdk;
+    </select>
+    <select id="queryKVInfo" resultType="com.uuzu.mktgo.pojo.DictModel">
+        select  *  from mapping_person_summary_sdk where per_name =#{name};
+    </select>
+
+</mapper>

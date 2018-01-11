@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: mobmktgo
+    index: ${random.long}
+  output:
+    ansi:
+      enabled: always
+
+  #配置文件集中管理
+  cloud:
+    config:
+      profile: test
+#      label: v1.1
+      discovery:
+        enabled: true
+        service-id: server-config #配置中心在服务中心注册的serviceId
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://server-center:8761/eureka/
+  instance:
+    preferIpAddress: true
+ribbon:
+  eureka:
+    enabled: true
+
+
+management:
+  security:
+    enabled: false
+
+
+server:
+  undertow:
+    worker-threads: 20
+    io-threads: 4
+    buffer-size: 1024
+    direct-buffers: true
+
+
+
+api:
+  biService: http://10.6.30.198:8888/mobeye-bi/api/query
+
+
+
+info:
+  version: V3.0
+
+

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.uuzu.mktgo.mapper.ModelRankMapper">
+    <resultMap id="BaseResultMap" type="com.uuzu.mktgo.pojo.Model">
+        <result column="brand" property="brand" jdbcType="VARCHAR"/>
+        <result column="brand_name" property="brand_name" jdbcType="VARCHAR"/>
+        <result column="model" property="model" jdbcType="VARCHAR"/>
+        <result column="rank1" property="rank1" jdbcType="INTEGER"/>
+        <result column="rank2" property="rank2" jdbcType="INTEGER"/>
+        <result column="imei_count" property="brand_name" jdbcType="INTEGER"/>
+        <result column="month" property="month" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="queryModelsByBrand" resultType="java.lang.String">
+
+      select s.model from (select DISTINCT  model,rank2 from model_rank_monthly where brand = #{brand} order by rank2) s order by s.rank2
+
+
+
+    </select>
+
+</mapper>

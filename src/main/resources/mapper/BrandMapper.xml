@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.uuzu.mktgo.mapper.BrandMapper">
+    <resultMap id="BaseResultMap" type="com.uuzu.mktgo.pojo.Brand">
+        <result column="brand" property="brand" jdbcType="VARCHAR"/>
+        <result column="brand_name" property="brand_name" jdbcType="VARCHAR"/>
+        <result column="rank" property="rank" jdbcType="INTEGER"/>
+        <result column="imei_count" property="imei_count" jdbcType="INTEGER"/>
+        <result column="month" property="month" jdbcType="VARCHAR"/>
+        </resultMap>
+    <select id="queryBrandsByRank" resultType="com.uuzu.mktgo.pojo.Brand">
+        select DISTINCT brand,brand_name,rank from brand_rank_monthly  where brand != 'APPLE' order by rank ;
+  </select>
+
+
+
+
+</mapper>
