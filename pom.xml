@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.youzu.mktgo</groupId>
   <artifactId>mob-mktgo</artifactId>
@@ -17,14 +17,51 @@
     <quartz.version>2.2.3</quartz.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.8</java.version>
+    <jdk.version>1.8</jdk.version>
+    <file_encoding>UTF-8</file_encoding>
+    <deployDirectory>${project.build.directory}/${project.build.finalName}</deployDirectory>
   </properties>
-  
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <env>dev</env>
+      </properties>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
+
+    <profile>
+      <id>test</id>
+      <properties>
+        <env>test</env>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>prod</id>
+      <properties>
+        <env>prod</env>
+      </properties>
+    </profile>
+  </profiles>
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>1.5.2.RELEASE</version>
   </parent>
-
+  <!--<repositories>-->
+  <!--<repository>-->
+  <!--<id>mob-release</id>-->
+  <!--<url>http://mvn.code.mob.com:8081/nexus/content/groups/public</url>-->
+  <!--<snapshots><enabled>true</enabled></snapshots>-->
+  <!--</repository>-->
+  <!--<repository>-->
+  <!--<id>mob-snapshots</id>-->
+  <!--<url>http://mvn.code.mob.com:8081/nexus/content/repositories/snapshots/</url>-->
+  <!--</repository>-->
+  <!--</repositories>-->
   <repositories>
     <repository>
       <id>releases</id>
@@ -42,17 +79,17 @@
     </pluginRepository>
   </pluginRepositories>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>Dalston.SR2</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+  <!--<dependencyManagement>-->
+  <!--<dependencies>-->
+  <!--<dependency>-->
+  <!--<groupId>org.springframework.cloud</groupId>-->
+  <!--<artifactId>spring-cloud-dependencies</artifactId>-->
+  <!--<version>Dalston.SR2</version>-->
+  <!--<type>pom</type>-->
+  <!--<scope>import</scope>-->
+  <!--</dependency>-->
+  <!--</dependencies>-->
+  <!--</dependencyManagement>-->
 
   <dependencies>
     <dependency>
@@ -67,21 +104,21 @@
       <artifactId>fastjson</artifactId>
       <version>1.2.31</version>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-eureka</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-config</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.retry</groupId>
-      <artifactId>spring-retry</artifactId>
-    </dependency>
     <!--<dependency>-->
-      <!--<groupId>org.springframework.cloud</groupId>-->
-      <!--<artifactId>spring-cloud-starter-bus-amqp</artifactId>-->
+    <!--<groupId>org.springframework.cloud</groupId>-->
+    <!--<artifactId>spring-cloud-starter-eureka</artifactId>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+    <!--<groupId>org.springframework.cloud</groupId>-->
+    <!--<artifactId>spring-cloud-starter-config</artifactId>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+    <!--<groupId>org.springframework.retry</groupId>-->
+    <!--<artifactId>spring-retry</artifactId>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+    <!--<groupId>org.springframework.cloud</groupId>-->
+    <!--<artifactId>spring-cloud-starter-bus-amqp</artifactId>-->
     <!--</dependency>-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -101,11 +138,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-aop</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.netflix.feign</groupId>
-      <artifactId>feign-okhttp</artifactId>
-      <version>8.18.0</version>
-    </dependency>
+    <!--<dependency>-->
+    <!--<groupId>com.netflix.feign</groupId>-->
+    <!--<artifactId>feign-okhttp</artifactId>-->
+    <!--<version>8.18.0</version>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>io.github.openfeign.form</groupId>
       <artifactId>feign-form</artifactId>
@@ -121,14 +158,14 @@
       <artifactId>feign-form-spring</artifactId>
       <version>2.2.1</version>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-feign</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-hystrix</artifactId>
-    </dependency>
+    <!--<dependency>-->
+    <!--<groupId>org.springframework.cloud</groupId>-->
+    <!--<artifactId>spring-cloud-starter-feign</artifactId>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+    <!--<groupId>org.springframework.cloud</groupId>-->
+    <!--<artifactId>spring-cloud-starter-hystrix</artifactId>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
@@ -143,8 +180,8 @@
       <artifactId>spring-boot-starter-cache</artifactId>
     </dependency>
     <!--<dependency>-->
-      <!--<groupId>org.springframework.boot</groupId>-->
-      <!--<artifactId>spring-boot-starter-data-redis</artifactId>-->
+    <!--<groupId>org.springframework.boot</groupId>-->
+    <!--<artifactId>spring-boot-starter-data-redis</artifactId>-->
     <!--</dependency>-->
     <dependency>
       <groupId>io.springfox</groupId>
@@ -153,9 +190,9 @@
     </dependency>
     <!-- Swagger2 UI包，前端展示API文档 -->
     <!--<dependency>-->
-      <!--<groupId>io.springfox</groupId>-->
-      <!--<artifactId>springfox-swagger-ui</artifactId>-->
-      <!--<version>${springfox.version}</version>-->
+    <!--<groupId>io.springfox</groupId>-->
+    <!--<artifactId>springfox-swagger-ui</artifactId>-->
+    <!--<version>${springfox.version}</version>-->
     <!--</dependency>-->
     <dependency>
       <groupId>com.github.xiaoymin</groupId>
@@ -232,75 +269,157 @@
     </dependency>
   </dependencies>
 
-  <profiles>
-    <!-- DEV -->
-    <profile>
-      <id>dev</id>
-      <properties>
-        <profiles.active>dev</profiles.active>
-      </properties>
-      <build>
-        <filters>
-          <filter>src/main/resources/bootstrap.yml</filter>
-        </filters>
-      </build>
-    </profile>
-    <!-- TEST -->
-    <profile>
-      <id>test</id>
-      <properties>
-        <profiles.active>test</profiles.active>
-      </properties>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <filters>
-          <filter>src/main/resources/bootstrap.yml</filter>
-        </filters>
-      </build>
-    </profile>
-    <!-- PROD -->
-    <profile>
-      <id>prod</id>
-      <properties>
-        <profiles.active>prod</profiles.active>
-      </properties>
-      <build>
-        <filters>
-          <filter>src/main/resources/bootstrap.yml</filter>
-        </filters>
-      </build>
-    </profile>
-  </profiles>
+
 
   <build>
-    <finalName>mob-mktgo</finalName>
-
-
-    <plugins>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <configuration>
-          <mainClass>com.uuzu.mktgo.MarketGoApplication</mainClass>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-
+    <filters>
+      <filter>src/main/resources/conf/filter-${env}.yml</filter>
+    </filters>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
-        <filtering>false</filtering>
+        <filtering>true</filtering>
+      </resource>
+      <resource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
       </resource>
     </resources>
 
+
+    <finalName>${project.artifactId}</finalName>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>${jdk.version}</source>
+          <target>${jdk.version}</target>
+          <encoding>${file_encoding}</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+      <!-- 依赖包打到/target/lib目录下 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <outputDirectory>
+            ${project.build.directory}/target/${project.artifactId}/lib2
+          </outputDirectory>
+          <excludeTransitive>false</excludeTransitive>
+          <stripVersion>false</stripVersion>
+          <overWriteReleases>false</overWriteReleases>
+          <overWriteSnapshots>false</overWriteSnapshots>
+          <overWriteIfNewer>true</overWriteIfNewer>
+          <excludeScope>provided</excludeScope>
+
+        </configuration>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>
+                ${project.build.directory}/target/${project.artifactId}/lib
+              </outputDirectory>
+              <excludeTransitive>false</excludeTransitive>
+              <stripVersion>false</stripVersion>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <excludeScope>provided</excludeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- 项目包打到/target/lib目录下 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <outputDirectory>${project.build.directory}/${project.artifactId}/lib</outputDirectory>
+          <archive>
+            <addMavenDescriptor>false</addMavenDescriptor>
+          </archive>
+          <excludes>
+            <exclude>**/*Test.class</exclude>
+            <exclude>**/*.properties</exclude>
+            <exclude>**/*.sql</exclude>
+            <exclude>**/*.xml</exclude>
+            <exclude>**/*.txt</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <!-- 打包资源 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <outputDirectory>
+                ${project.build.directory}/${project.artifactId}/conf
+              </outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/resources/</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>*</include>
+                    <include>**/*</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <!-- 启动命令打到/target/目录下 -->
+          <execution>
+            <id>copy-command</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <outputDirectory>
+                ${project.build.directory}/${project.artifactId}
+              </outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/bin/</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>*</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
   </build>
+
 </project>
