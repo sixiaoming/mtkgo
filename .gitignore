@@ -1,0 +1,11 @@
+/.settings
+*.idea
+*.iml
+/target
+**.DS_Store
+deploy.sh
+abv
+/.classpath
+/.project
+/.svn
+.idea/
