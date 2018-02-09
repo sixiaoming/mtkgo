@@ -7,7 +7,6 @@
   <version>1.0-SNAPSHOT</version>
   <name>mob-mktgo Maven Webapp</name>
   <url>http://maven.apache.org</url>
-
   <properties>
     <lombok.version>1.16.10</lombok.version>
     <mybatis.version>1.2.0</mybatis.version>
@@ -21,62 +20,44 @@
     <file_encoding>UTF-8</file_encoding>
     <deployDirectory>${project.build.directory}/${project.build.finalName}</deployDirectory>
   </properties>
-  <profiles>
-    <profile>
-      <id>dev</id>
-      <properties>
-        <env>dev</env>
-      </properties>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-    </profile>
-
-    <profile>
-      <id>test</id>
-      <properties>
-        <env>test</env>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>prod</id>
-      <properties>
-        <env>prod</env>
-      </properties>
-    </profile>
-  </profiles>
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>1.5.2.RELEASE</version>
   </parent>
-  <repositories>
+  <distributionManagement>
     <repository>
       <id>releases</id>
-      <url>http://10.18.98.214:8081/repository/maven-releases/</url>
-      <releases><enabled>true</enabled><updatePolicy>always</updatePolicy></releases>
-      <snapshots><enabled>true</enabled><updatePolicy>always</updatePolicy></snapshots>
+      <url>http://mvn.code.mob.com:8081/nexus/content/repositories/releases</url>
     </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>releases</id>
-      <url>http://10.18.98.214:8081/repository/maven-releases/</url>
-      <releases><enabled>true</enabled><updatePolicy>always</updatePolicy></releases>
-      <snapshots><enabled>true</enabled><updatePolicy>always</updatePolicy></snapshots>
-    </pluginRepository>
-  </pluginRepositories>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <url>http://mvn.code.mob.com:8081/nexus/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 
-
+  <!--<repositories>-->
+    <!--<repository>-->
+      <!--<id>releases</id>-->
+      <!--<url>http://10.18.98.214:8081/repository/maven-releases/</url>-->
+      <!--<releases><enabled>true</enabled><updatePolicy>always</updatePolicy></releases>-->
+      <!--<snapshots><enabled>true</enabled><updatePolicy>always</updatePolicy></snapshots>-->
+    <!--</repository>-->
+  <!--</repositories>-->
+  <!--<pluginRepositories>-->
+    <!--<pluginRepository>-->
+      <!--<id>releases</id>-->
+      <!--<url>http://10.18.98.214:8081/repository/maven-releases/</url>-->
+      <!--<releases><enabled>true</enabled><updatePolicy>always</updatePolicy></releases>-->
+      <!--<snapshots><enabled>true</enabled><updatePolicy>always</updatePolicy></snapshots>-->
+    <!--</pluginRepository>-->
+  <!--</pluginRepositories>-->
   <dependencies>
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
       <version>1.7.3</version>
     </dependency>
-
-
     <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>fastjson</artifactId>
@@ -100,7 +81,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-aop</artifactId>
     </dependency>
-
     <dependency>
       <groupId>io.github.openfeign.form</groupId>
       <artifactId>feign-form</artifactId>
@@ -129,7 +109,7 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-cache</artifactId>
     </dependency>
-     <dependency>
+    <dependency>
       <groupId>io.springfox</groupId>
       <artifactId>springfox-swagger2</artifactId>
       <version>${springfox.version}</version>
@@ -172,7 +152,6 @@
       <artifactId>junit</artifactId>
       <version>4.12</version>
     </dependency>
-
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
@@ -208,12 +187,33 @@
       </exclusions>
     </dependency>
   </dependencies>
-
-
-  <!--src/main/resources/conf/filter-${env}.yml-->
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <env>dev</env>
+      </properties>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
+    <profile>
+      <id>test</id>
+      <properties>
+        <env>test</env>
+      </properties>
+    </profile>
+    <profile>
+      <id>prod</id>
+      <properties>
+        <env>prod</env>
+      </properties>
+    </profile>
+  </profiles>
   <build>
+    <finalName>${project.artifactId}</finalName>
     <filters>
-      <filter>${project.artifactId}/conf/filter-${env}.yml</filter>
+      <filter>${basedir}/conf/filter-${env}.properties</filter>
     </filters>
     <resources>
       <resource>
@@ -225,10 +225,6 @@
         <filtering>true</filtering>
       </resource>
     </resources>
-
-
-    <finalName>${project.artifactId}</finalName>
-
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -247,44 +243,6 @@
           <skipTests>true</skipTests>
         </configuration>
       </plugin>
-      <!-- 依赖包打到/target/lib目录下 -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <configuration>
-          <outputDirectory>
-            ${project.build.directory}/target/${project.artifactId}/lib2
-          </outputDirectory>
-          <excludeTransitive>false</excludeTransitive>
-          <stripVersion>false</stripVersion>
-          <overWriteReleases>false</overWriteReleases>
-          <overWriteSnapshots>false</overWriteSnapshots>
-          <overWriteIfNewer>true</overWriteIfNewer>
-          <excludeScope>provided</excludeScope>
-
-        </configuration>
-        <executions>
-          <execution>
-            <id>copy-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>
-                ${project.build.directory}/target/${project.artifactId}/lib
-              </outputDirectory>
-              <excludeTransitive>false</excludeTransitive>
-              <stripVersion>false</stripVersion>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <excludeScope>provided</excludeScope>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- 项目包打到/target/lib目录下 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -304,6 +262,7 @@
           </excludes>
         </configuration>
       </plugin>
+
       <!-- 打包资源 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -347,7 +306,7 @@
               </outputDirectory>
               <resources>
                 <resource>
-                  <directory>src/main/bin/</directory>
+                  <directory>bin/${env}/</directory>
                   <filtering>true</filtering>
                   <includes>
                     <include>*</include>
@@ -358,8 +317,42 @@
           </execution>
         </executions>
       </plugin>
-
+      <!-- 依赖包打到/target/lib目录下 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <outputDirectory>
+            ${project.build.directory}/target/${project.artifactId}/lib2
+          </outputDirectory>
+          <excludeTransitive>false</excludeTransitive>
+          <stripVersion>false</stripVersion>
+          <!--<overWriteReleases>false</overWriteReleases>-->
+          <!--<overWriteSnapshots>false</overWriteSnapshots>-->
+          <!--<overWriteIfNewer>true</overWriteIfNewer>-->
+          <!--<excludeScope>provided</excludeScope>-->
+        </configuration>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>
+                ${project.build.directory}/target/${project.artifactId}/lib
+              </outputDirectory>
+              <excludeTransitive>false</excludeTransitive>
+              <stripVersion>false</stripVersion>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <excludeScope>provided</excludeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
-
 </project>
