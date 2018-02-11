@@ -15,14 +15,16 @@ mobmktgo
 请求地址：http://{IP}:{PORT}/mktgo/overview_all
 
 参数说明：
+```
 {
 “price”：“10001999”， 价格
 “country”：“cn”， 国家
 “province”：“cn19”， 省份
 “date”：“201709”   月份
 }
-
+```
 返回参数说明
+```
 {
 "holding_rank": [{"key": "",
 "value": 0
@@ -63,10 +65,13 @@ mobmktgo
 }
 ]
 }
+```
 品牌概览接口
+
 请求地址：http://{IP}:{PORT}/mktgo/overview_brand
 
 参数说明：
+```
 {
 “brand”：“HUAWEI”，品牌
 “price”：“10001999”， 价格
@@ -74,8 +79,11 @@ mobmktgo
 “province”：“cn19”， 省份
 “date”：“201709”   月份
 }
+```
 
-返回参数说明{"brand": "",
+返回参数说明
+```
+{"brand": "",
 "brandPic": "",
 "holding": 0,
 "holding_rank": [{"key": "",
@@ -118,10 +126,14 @@ mobmktgo
 }
 ]
 }
+```
 
 地区分布接口
+
 请求地址：http://{IP}:{PORT}/mktgo/regionDistribution
+
 参数说明：
+```
 {
 “brand”：“HUAWEI”，品牌
 “model”：“HUAWEIP9‘”，
@@ -149,10 +161,13 @@ mobmktgo
 }
 ]
 }
-
+```
 媒介分析接口
+
 请求地址：http://{IP}:{PORT}/mktgo/mediaAnalysis
+
 参数说明：
+```
 {
 “brand”：“HUAWEI”，品牌
 “model”：“HUAWEIP9‘”，
@@ -161,7 +176,9 @@ mobmktgo
 “province”：“cn19”， 省份
 “date”：“201709”   月份
 }
+```
 返回参数说明
+```
 [{"apppkg": "com.tencent.mm",
 "icon": "http://img.wdjimg.com/mms/icon/v1/7/ed/15891412e00a12fdec0bbe290b42ced7_256_256.png",
 "name": "微信",
@@ -186,10 +203,13 @@ mobmktgo
 "index": 74.51429505207395
 }
 ]
-
+```
 换机周期接口
+
 请求地址：http://{IP}:{PORT}/mktgo/changePhonePeriod
+
 参数说明：
+```
 {
 “brand”：“HUAWEI”，品牌
 “model”：“HUAWEIP9‘”，机型
@@ -197,15 +217,19 @@ mobmktgo
 “country”：“cn”， 国家
 “province”：“cn19”， 省份
 }
+```
 返回参数说明
-
+```
 {     "period": 
 [{"key": "2017Q3","value": 10.4},{"key": "2017Q2","value": 9.8},{"key": "2017Q1","value": 8.7},{"key": "2016Q4","value": 7.5},{"key": "2016Q3","value": 6.2},{"key": "2016Q2","value": 5.7},{"key": "2016Q1","value": 3.9},{"key": "2015Q4","value": 3.3}]
  }
-
+```
 换机流动接口
+
 请求地址：http://{IP}:{PORT}/mktgo/changePhoneTrend
+
 参数说明：
+```
 {
 “brand”：“HUAWEI”，品牌
 “model”：“HUAWEIP9‘”，机型
@@ -213,7 +237,9 @@ mobmktgo
 “country”：“cn”， 国家
 “province”：“cn19”， 省份
 }
+```
 返回参数说明
+```
 {
 "source": {
 "gender": [{"key": "男",
@@ -655,11 +681,14 @@ mobmktgo
 "publicTime": "2016年04月"
 }
 }
-
+```
 
 机型概览接口
+
 请求地址：http://{IP}:{PORT}/mktgo/overview_model
+
 参数说明：
+```
 {
 “model”：“HUAWEIP9‘”，机型
 “price”：“10001999”， 价格
@@ -691,10 +720,13 @@ mobmktgo
 "price": "",
 "uptime": ""
 }
-
+```
 标准画像接口
+
 请求地址：http://{IP}:{PORT}/mktgo/standardPortrait
+
 参数说明：
+```
 {
 “brand”：“HUAWEI”，品牌
 “model”：“HUAWEIP9‘”，机型
@@ -703,7 +735,9 @@ mobmktgo
 “province”：“cn19”， 省份
 “date”：“201802”
 }
+```
 返回参数说明
+```
 {
 "gender": [key": "男",
 "value": 0.6637001247995594key": "女",
@@ -819,12 +853,13 @@ mobmktgo
 }
 ]
 }
-
+```
 粉丝画像接口
 
 请求地址：http://{IP}:{PORT}/mktgo/fansPortrait
 
 参数说明：
+```
 {
 “brand”:“HUAWEI”，
 “model”:”HUAWEIP9”，
@@ -832,8 +867,9 @@ mobmktgo
 “country”：“cn”， 国家
 “province”：“cn19” 省份
 }
-
+```
 返回参数说明
+```
 {
 "gender": [
 {"key": "男",
@@ -1101,5 +1137,5 @@ mobmktgo
 }
 ]
 }
-
+```
 
