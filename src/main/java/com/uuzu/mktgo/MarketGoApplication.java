@@ -3,11 +3,14 @@ package com.uuzu.mktgo;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 //import org.springframework.cloud.client.SpringCloudApplication;
 //import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.TimeUnit;
@@ -18,7 +21,9 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 //@SpringCloudApplication
 //@EnableFeignClients
+@EnableAutoConfiguration
 @EnableCaching
+@PropertySource(value = "classpath:application.properties")
 public class MarketGoApplication {
 
     @Bean
@@ -40,6 +45,13 @@ public class MarketGoApplication {
         threadPoolTaskExecutor.initialize();
         return  threadPoolTaskExecutor;
     }
+//    @Bean
+//    public static PropertySourcesPlaceholderConfigurer placeholderConfigurer() {
+//        PropertySourcesPlaceholderConfigurer c = new PropertySourcesPlaceholderConfigurer();
+//        c.setIgnoreUnresolvablePlaceholders(true);
+//        return c;
+//    }
+
 
     public static void main(String[] args){
         SpringApplication.run(MarketGoApplication.class,args);
