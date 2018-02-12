@@ -1,6 +1,6 @@
 #!/bin/sh
 
-className=MobApp360Application
+className=MarketGoApplication
 
 pid=`ps -ef|grep $className|awk '$8 ~ /java/ {print $2}'`
 
