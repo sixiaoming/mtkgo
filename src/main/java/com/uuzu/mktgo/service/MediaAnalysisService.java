@@ -51,10 +51,10 @@ public class MediaAnalysisService {
 
     //媒介分析全量表（选择近六个月时）
 //    private static String MEDIAANALYSIS_HBASETABLENAME = "mktgo_full_app_info_monthly_summary_prod";
-    private static String MEDIAANALYSIS_HBASETABLENAME = "mktgo_full_app_info_monthly_summary_test_prod";
+    private static String MEDIAANALYSIS_HBASETABLENAME = "mktgo_full_app_info_monthly_test_summary_prod";
 
     //媒介分析增量表（单独选择某一个月份时）
-    private static String MEDIAANALYSIS_HBASETABLENAME_INCR = "mktgo_incr_app_info_monthly_summary_test_prod";
+    private static String MEDIAANALYSIS_HBASETABLENAME_INCR = "mktgo_incr_app_info_monthly_test_summary_prod";
 //    private static String MEDIAANALYSIS_HBASETABLENAME_INCR = "mktgo_incr_app_info_monthly_summary_prod";
 
 
