@@ -50,9 +50,12 @@ public class MediaAnalysisService {
 
 
     //媒介分析全量表（选择近六个月时）
-    private static String MEDIAANALYSIS_HBASETABLENAME = "mktgo_full_app_info_monthly_summary_prod";
+//    private static String MEDIAANALYSIS_HBASETABLENAME = "mktgo_full_app_info_monthly_summary_prod";
+    private static String MEDIAANALYSIS_HBASETABLENAME = "mktgo_full_app_info_monthly_summary_test_prod";
+
     //媒介分析增量表（单独选择某一个月份时）
-    private static String MEDIAANALYSIS_HBASETABLENAME_INCR = "mktgo_incr_app_info_monthly_summary_prod";
+    private static String MEDIAANALYSIS_HBASETABLENAME_INCR = "mktgo_incr_app_info_monthly_summary_test_prod";
+//    private static String MEDIAANALYSIS_HBASETABLENAME_INCR = "mktgo_incr_app_info_monthly_summary_prod";
 
 
     public List<MediaAnalysisModel> MediaAnalysis(String brand, String model, String price, String country, String province, String date) throws Exception {
@@ -296,6 +299,11 @@ public class MediaAnalysisService {
                         mediaAnalysisModel1.setCnt4(Bytes.toString(result1.getValue("cf".getBytes(), "cnt4_sum".getBytes())));
                         mediaAnalysisModel1.setIcon(Bytes.toString(result1.getValue("cf".getBytes(), "icon_max".getBytes())));
                         mediaAnalysisModel1.setName(Bytes.toString(result1.getValue("cf".getBytes(), "name_max".getBytes())));
+
+                        //20180228 chenwei change the hbase table
+                        mediaAnalysisModel1.setCate_l2_id(Bytes.toString(result1.getValue("cf".getBytes(), "cate_l2_id".getBytes())));
+                        mediaAnalysisModel1.setCate_l2(Bytes.toString(result1.getValue("cf".getBytes(), "cate_l2".getBytes())));
+
                         mediaAnalysisModel1.setApppkg(apppkg);
                         return mediaAnalysisModel1;
                     }
