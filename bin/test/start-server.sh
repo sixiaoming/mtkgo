@@ -42,4 +42,4 @@ echo "JAVA_HOME  :$JAVA_HOME"
 echo "SERVER_HOME:$SERVER_HOME"
 echo "CLASSPATH  :$CLASSPATH"
 
-exec $java -javaagent:agentJar.jar -cp $CLASSPATH $JAVA_OPTS com.uuzu.mktgo.MarketGoApplication $* > $0.log  2>&1  &
+exec $java -cp $CLASSPATH $JAVA_OPTS com.uuzu.mktgo.MarketGoApplication $* > $0.log  2>&1  &
