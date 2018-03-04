@@ -1,6 +1,6 @@
 ## MKTGO
 
-### [全景查询系统](http://c.mob.com/pages/viewpage.action?pageId=5658416)
+### [移动设备监测](http://c.mob.com/pages/viewpage.action?pageId=5658416)
 
 ### [测试地址](http://mktgo.mobeye.mob.com/doc.html)
 
