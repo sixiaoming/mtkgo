@@ -53,6 +53,18 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.lamfire</groupId>
+			<artifactId>lamfire</artifactId>
+			<version>2.3.18</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.mail</groupId>
+					<artifactId>mail</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
 			<version>1.7.3</version>

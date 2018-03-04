@@ -1,3 +1,6 @@
+/*
+ * Copyright 2015-2020 mob.com All right reserved.
+ */
 package com.uuzu.mktgo.util;
 
 import java.math.BigDecimal;
