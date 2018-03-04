@@ -8,14 +8,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 /**
- * 
- * @author jiangll
  * 解决跨域问题
- *
  */
 @Configuration
 public class CrossConfig {
-	@Bean
+
+    @Bean
     public FilterRegistrationBean corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
@@ -30,5 +28,5 @@ public class CrossConfig {
         // 这个顺序很重要哦，为避免麻烦请设置在最前
         bean.setOrder(0);
         return bean;
-	}
+    }
 }

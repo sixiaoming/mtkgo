@@ -1,8 +1,9 @@
+/*
+ * Copyright 2015-2020 msun.com All right reserved.
+ */
 package com.uuzu.mktgo.pojo;
 
 import lombok.Data;
-
-import java.math.BigDecimal;
 
 /**
  * @author zhoujin
@@ -21,4 +22,8 @@ public class MediaAnalysisModel {
     private String cnt4;
     private double active_rate;
     private double index;
+
+    private String cate_l2_id;
+    private String cate_l2;
+
 }

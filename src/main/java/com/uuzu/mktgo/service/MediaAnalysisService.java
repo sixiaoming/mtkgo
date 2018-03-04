@@ -1,14 +1,10 @@
 package com.uuzu.mktgo.service;
 
-import com.jthink.spring.boot.starter.hbase.api.HbaseTemplate;
-import com.uuzu.mktgo.elasticsearch.FullAppInfoMonthlySummary;
-import com.uuzu.mktgo.elasticsearch.FullAppInfoMonthlySummaryRepository;
-import com.uuzu.mktgo.mapper.DateMonthMapper;
-import com.uuzu.mktgo.pojo.MediaAnalysisModel;
-import com.uuzu.mktgo.pojo.OperationEnum;
-import com.uuzu.mktgo.util.ArithUtil;
-import com.uuzu.mktgo.util.HttpUtil;
+import java.util.*;
+import java.util.concurrent.*;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -22,42 +18,50 @@ import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.concurrent.*;
+import com.jthink.spring.boot.starter.hbase.api.HbaseTemplate;
+import com.uuzu.mktgo.elasticsearch.FullAppInfoMonthlySummary;
+import com.uuzu.mktgo.elasticsearch.FullAppInfoMonthlySummaryRepository;
+import com.uuzu.mktgo.mapper.DateMonthMapper;
+import com.uuzu.mktgo.pojo.MediaAnalysisModel;
+import com.uuzu.mktgo.pojo.OperationEnum;
+import com.uuzu.mktgo.util.ArithUtil;
+import com.uuzu.mktgo.util.HttpUtil;
 
 /**
- * 媒介分析V2
- * es+hbase架构
+ * 媒介分析V2 es+hbase架构
  *
  * @author zhoujin
  */
 @Service
 @Slf4j
 public class MediaAnalysisService {
+
     @Autowired
-    DateMonthMapper dateMonthMapper;
+    DateMonthMapper                     dateMonthMapper;
 
     @Autowired
     FullAppInfoMonthlySummaryRepository fullAppInfoMonthlySummaryRepository;
 
     @Autowired
-    HbaseService hbaseService;
+    HbaseService                        hbaseService;
 
     @Autowired
-    private HbaseTemplate hbaseTemplate;
+    private HbaseTemplate               hbaseTemplate;
     @Autowired
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    private ThreadPoolTaskExecutor      threadPoolTaskExecutor;
 
+    // 媒介分析全量表（选择近六个月时）
+    // private static String MEDIAANALYSIS_HBASETABLENAME = "mktgo_full_app_info_monthly_summary_prod";
+    private static String               MEDIAANALYSIS_HBASETABLENAME      = "mktgo_full_app_info_monthly_test_summary_prod";
 
-    //媒介分析全量表（选择近六个月时）
-    private static String MEDIAANALYSIS_HBASETABLENAME = "mktgo_full_app_info_monthly_summary_prod";
-    //媒介分析增量表（单独选择某一个月份时）
-    private static String MEDIAANALYSIS_HBASETABLENAME_INCR = "mktgo_incr_app_info_monthly_summary_prod";
+    // 媒介分析增量表（单独选择某一个月份时）
+    private static String               MEDIAANALYSIS_HBASETABLENAME_INCR = "mktgo_incr_app_info_monthly_test_summary_prod";
 
+    // private static String MEDIAANALYSIS_HBASETABLENAME_INCR = "mktgo_incr_app_info_monthly_summary_prod";
 
     public List<MediaAnalysisModel> MediaAnalysis(String brand, String model, String price, String country, String province, String date) throws Exception {
         List<MediaAnalysisModel> mediaAnalysisModels = new ArrayList<>();
-        //获取最大日期
+        // 获取最大日期
         String maxMonth = "";
         String hbaseTable = "";
         if (StringUtils.isEmpty(date)) {
@@ -68,14 +72,13 @@ public class MediaAnalysisService {
             hbaseTable = MEDIAANALYSIS_HBASETABLENAME_INCR;
         }
 
-
         FullAppInfoMonthlySummary cnt1AndCnt2Summary = new FullAppInfoMonthlySummary(brand, model, price, country, province, maxMonth);
         FullAppInfoMonthlySummary cnt3AndCnt4Summary = new FullAppInfoMonthlySummary(null, null, null, country, province, maxMonth);
 
-        //获取cnt2 rowkeys
+        // 获取cnt2 rowkeys
         Map<String, String> cnt2Keys = getRowKeyByEs(cnt1AndCnt2Summary, OperationEnum.EQ.getOperation());
         Map<String, String> cnt2Values = hbaseService.getResultByHbaseTable(cnt2Keys, "cnt2_sum", hbaseTable);
-        //size = 1
+        // size = 1
         Double cnt2Value = 0d;
         for (String key : cnt2Values.keySet()) {
             if (StringUtils.isNotEmpty(cnt2Values.get(key)) && (!cnt2Values.get(key).equals("null"))) {
@@ -83,35 +86,35 @@ public class MediaAnalysisService {
             }
         }
 
-        //获取cnt4 rowkeys
+        // 获取cnt4 rowkeys
         Map<String, String> cnt4Keys = getRowKeyByEs(cnt3AndCnt4Summary, OperationEnum.EQ.getOperation());
         Map<String, String> cnt4Values = hbaseService.getResultByHbaseTable(cnt4Keys, "cnt4_sum", hbaseTable);
         Double cnt4Value = 0d;
-        //size = 1
+        // size = 1
         for (String key : cnt4Values.keySet()) {
             if (StringUtils.isNotEmpty(cnt4Values.get(key)) && (!cnt4Values.get(key).equals("null"))) {
                 cnt4Value = Double.parseDouble(cnt4Values.get(key));
             }
         }
 
-        //获取cnt1 rowkeys
+        // 获取cnt1 rowkeys
         Map<String, String> cnt1Keys = getRowKeyByEs(cnt1AndCnt2Summary, OperationEnum.BET.getOperation());
-        //根据rowkeys获取hbase的相应值
+        // 根据rowkeys获取hbase的相应值
         List<MediaAnalysisModel> cnt1Models = getResultByHbaseTable(cnt1Keys, hbaseTable);
 
-        //获取cnt3 rowkeys
+        // 获取cnt3 rowkeys
 
         Map<String, String> cnt3Keys = getRowKeyByEs(cnt3AndCnt4Summary, OperationEnum.BET.getOperation());
         Map<String, String> cnt3Maps = hbaseService.getResultByHbaseTable(cnt3Keys, "cnt3_sum", hbaseTable);
 
-
-        //select apppkg, icon, name, cate_id, cate_name, cnt1, cnt2, cnt3, cnt4,cnt1/cnt2 as active_rate,(cnt1/cnt2)/(cnt3/cnt4)*100 as index
+        // select apppkg, icon, name, cate_id, cate_name, cnt1, cnt2, cnt3, cnt4,cnt1/cnt2 as
+        // active_rate,(cnt1/cnt2)/(cnt3/cnt4)*100 as index
 
         /**
          * 排除null值 by zhongqi
          */
         for (MediaAnalysisModel mediaAnalysisModel : cnt1Models) {
-            if(mediaAnalysisModel != null){
+            if (mediaAnalysisModel != null) {
 
                 Double cnt3 = Double.parseDouble(StringUtils.isEmpty(cnt3Maps.get(mediaAnalysisModel.getApppkg())) ? "0" : cnt3Maps.get(mediaAnalysisModel.getApppkg()));
                 Double activeRate = 0d;
@@ -133,14 +136,15 @@ public class MediaAnalysisService {
                 mediaAnalysisModel.setCnt4(cnt4Value.toString());
             }
         }
-        //比较前去除null元素
+        // 比较前去除null元素
         cnt1Models.removeAll(Collections.singleton(null));
         Collections.sort(cnt1Models, new Comparator<MediaAnalysisModel>() {
+
             @Override
             public int compare(MediaAnalysisModel o1, MediaAnalysisModel o2) {
-                if ( o1.getActive_rate() < o2.getActive_rate()) {
+                if (o1.getActive_rate() < o2.getActive_rate()) {
                     return 1;
-                } else if ( o1.getActive_rate() == (o2.getActive_rate())) {
+                } else if (o1.getActive_rate() == (o2.getActive_rate())) {
                     return 0;
                 } else {
                     return -1;
@@ -156,7 +160,7 @@ public class MediaAnalysisService {
      */
     class Task implements Callable {
 
-        int tryNum = 1;
+        int            tryNum = 1;
 
         private String sql;
 
@@ -179,7 +183,6 @@ public class MediaAnalysisService {
     }
 
     private static String NULLSRT = "NIL";
-
 
     /**
      * es查询
@@ -208,7 +211,7 @@ public class MediaAnalysisService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("province", NULLSRT));
         }
 
-        //cnt3和cnt4条件为品牌和机型为null
+        // cnt3和cnt4条件为品牌和机型为null
         if (StringUtils.isNotEmpty(fullAppInfoMonthlySummary.getBrand())) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("brand", fullAppInfoMonthlySummary.getBrand()));
         } else {
@@ -220,19 +223,15 @@ public class MediaAnalysisService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("model", NULLSRT));
         }
 
-        //cnt1,cnt3为apppkg<>'NIL'; cnt2,cnt4为apppkg='NIL'
+        // cnt1,cnt3为apppkg<>'NIL'; cnt2,cnt4为apppkg='NIL'
         if (OperationEnum.EQ.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("apppkg", NULLSRT));
         } else if (OperationEnum.BET.getOperation().equals(operation)) {
             boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery("apppkg", NULLSRT));
         }
 
-
         Pageable pageable = new PageRequest(0, 10000);
-        SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withPageable(pageable)
-                .withQuery(boolQueryBuilder)
-                .build();
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable).withQuery(boolQueryBuilder).build();
 
         Page<FullAppInfoMonthlySummary> search = fullAppInfoMonthlySummaryRepository.search(searchQuery);
         Map<String, String> result = new HashMap<>();
@@ -243,7 +242,6 @@ public class MediaAnalysisService {
         return result;
 
     }
-
 
     /**
      * hbase查询
@@ -268,7 +266,6 @@ public class MediaAnalysisService {
 
         return results;
     }
-
 
     class HbaseTask implements Callable {
 
@@ -296,11 +293,16 @@ public class MediaAnalysisService {
                         mediaAnalysisModel1.setCnt4(Bytes.toString(result1.getValue("cf".getBytes(), "cnt4_sum".getBytes())));
                         mediaAnalysisModel1.setIcon(Bytes.toString(result1.getValue("cf".getBytes(), "icon_max".getBytes())));
                         mediaAnalysisModel1.setName(Bytes.toString(result1.getValue("cf".getBytes(), "name_max".getBytes())));
-                        mediaAnalysisModel1.setApppkg(apppkg);
-                        return mediaAnalysisModel1;
-                    }
-                    return null;
-                });
+
+                        // 20180228 chenwei change the hbase table
+                                                                          mediaAnalysisModel1.setCate_l2_id(Bytes.toString(result1.getValue("cf".getBytes(), "cate_l2_id".getBytes())));
+                                                                          mediaAnalysisModel1.setCate_l2(Bytes.toString(result1.getValue("cf".getBytes(), "cate_l2".getBytes())));
+
+                                                                          mediaAnalysisModel1.setApppkg(apppkg);
+                                                                          return mediaAnalysisModel1;
+                                                                      }
+                                                                      return null;
+                                                                  });
                 return mediaAnalysisModel;
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
@@ -308,6 +310,5 @@ public class MediaAnalysisService {
             return null;
         }
     }
-
 
 }

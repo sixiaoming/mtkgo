@@ -1,17 +1,18 @@
 package com.uuzu.mktgo.service;
 
-import com.uuzu.mktgo.elasticsearch.PersonaSummary;
-import com.uuzu.mktgo.elasticsearch.PersonaSummaryppingRepository;
-import com.uuzu.mktgo.mapper.DateMonthMapper;
-import com.uuzu.mktgo.pojo.BaseModel;
-import com.uuzu.mktgo.pojo.OperationEnum;
-import com.uuzu.mktgo.pojo.RegionDistributionModel;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Future;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,34 +22,35 @@ import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
+import com.uuzu.mktgo.elasticsearch.PersonaSummary;
+import com.uuzu.mktgo.elasticsearch.PersonaSummaryppingRepository;
+import com.uuzu.mktgo.mapper.DateMonthMapper;
+import com.uuzu.mktgo.pojo.BaseModel;
+import com.uuzu.mktgo.pojo.OperationEnum;
+import com.uuzu.mktgo.pojo.RegionDistributionModel;
 
 @Service
 @Slf4j
 public class RegionDistributionService {
 
-    private static final String NIL_STR = "NIL";
-    private static final String[] FIELDS = {"income", "sysver", "brand_name", "carrier", "segment", "agebin",
-            "network", "occupation", "edu", "price", "house", "screensize", "car", "married", "kids", "gender"};
-    private static final String HBASE_TABLE = "persona_summary_prod";
+    private static final String           NIL_STR     = "NIL";
+    private static final String[]         FIELDS      = { "income", "sysver", "brand_name", "carrier", 
+                                                          "segment", "agebin", "network", "occupation", 
+                                                          "edu", "price", "house", "screensize", "car", 
+                                                          "married", "kids","gender"};
+    private static final String           HBASE_TABLE = "persona_summary_prod";
     @Autowired
     private PersonaSummaryppingRepository personaSummaryppingRepository;
     @Autowired
-    private HbaseService hbaseService;
+    private HbaseService                  hbaseService;
     @Autowired
-    DateMonthMapper dateMonthMapper;
+    DateMonthMapper                       dateMonthMapper;
     @Autowired
-    DictInfoService dictInfoService;
+    DictInfoService                       dictInfoService;
     @Autowired
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    private ThreadPoolTaskExecutor        threadPoolTaskExecutor;
 
     /**
-     *
      * @param brand
      * @param model
      * @param price
@@ -58,7 +60,7 @@ public class RegionDistributionService {
      * @return
      * @throws Exception
      */
-    public RegionDistributionModel regionDistribution(String brand, String model, String price, String country, String date, String province) throws Exception{
+    public RegionDistributionModel regionDistribution(String brand, String model, String price, String country, String date, String province) throws Exception {
         RegionDistributionModel regionDistributionModel = new RegionDistributionModel();
         // default country=cn
         if (StringUtils.isEmpty(country)) country = "cn";
@@ -69,34 +71,27 @@ public class RegionDistributionService {
             // get max month
             String maxMonth = dateMonthMapper.queryMaxMonth();
             personaSummary.setMnt(maxMonth);
-            completionService.submit(new RegionDistributionService.Task(getRowKeyBoolQuery(personaSummary,"mnt", OperationEnum.EQ.getOperation()),
-                    "mnt", "imei_count", list, "sumMap"));
+            completionService.submit(new RegionDistributionService.Task(getRowKeyBoolQuery(personaSummary, "mnt", OperationEnum.EQ.getOperation()), "mnt", "imei_count", list, "sumMap"));
             // query province
-            completionService.submit(new RegionDistributionService.Task(getProvinceRowKeyBoolQuery(personaSummary, OperationEnum.EQ.getOperation()),
-                    "province", "imei_count", list, "sumProvinceMap"));
+            completionService.submit(new RegionDistributionService.Task(getProvinceRowKeyBoolQuery(personaSummary, OperationEnum.EQ.getOperation()), "province", "imei_count", list, "sumProvinceMap"));
             // query province marketShare
             PersonaSummary marketSharePersonaSummary = new PersonaSummary(null, null, null, country, null, maxMonth);
-            completionService.submit(new RegionDistributionService.Task(getProvinceRowKeyBoolQuery(marketSharePersonaSummary, OperationEnum.EQ.getOperation()),
-                    "province", "imei_count", list, "sumMapByCountry"));
+            completionService.submit(new RegionDistributionService.Task(getProvinceRowKeyBoolQuery(marketSharePersonaSummary, OperationEnum.EQ.getOperation()), "province", "imei_count", list, "sumMapByCountry"));
         } else {
-            completionService.submit(new RegionDistributionService.Task(getRowKeyBoolQuery(personaSummary,"mnt", OperationEnum.EQ.getOperation()),
-                    "mnt", "imei_count_incr", list, "sumMap"));
+            completionService.submit(new RegionDistributionService.Task(getRowKeyBoolQuery(personaSummary, "mnt", OperationEnum.EQ.getOperation()), "mnt", "imei_count_incr", list, "sumMap"));
             // query province
-            completionService.submit(new RegionDistributionService.Task(getProvinceRowKeyBoolQuery(personaSummary, OperationEnum.EQ.getOperation()),
-                    "province", "imei_count_incr", list, "sumProvinceMap"));
+            completionService.submit(new RegionDistributionService.Task(getProvinceRowKeyBoolQuery(personaSummary, OperationEnum.EQ.getOperation()), "province", "imei_count_incr", list, "sumProvinceMap"));
             // query province marketShare
             PersonaSummary marketSharePersonaSummary = new PersonaSummary(null, null, null, country, null, date);
-            completionService.submit(new RegionDistributionService.Task(getProvinceRowKeyBoolQuery(marketSharePersonaSummary, OperationEnum.EQ.getOperation()),
-                    "province", "imei_count_incr", list, "sumMapByCountry"));
+            completionService.submit(new RegionDistributionService.Task(getProvinceRowKeyBoolQuery(marketSharePersonaSummary, OperationEnum.EQ.getOperation()), "province", "imei_count_incr", list, "sumMapByCountry"));
         }
 
         for (int i = 0; i < 3; i++) {
             Future<String> future = completionService.take();
-//            log.info("Tread======" + future.get());
+            // log.info("Tread======" + future.get());
         }
 
-        if (list.size() == 0)
-            return regionDistributionModel;
+        if (list.size() == 0) return regionDistributionModel;
 
         Map<String, String> sumMap = list.get("sumMap");
         Map<String, String> sumProvinceMap = list.get("sumProvinceMap");
@@ -108,7 +103,6 @@ public class RegionDistributionService {
     }
 
     /**
-     *
      * @param regionDistributionModel
      * @param filterMap
      * @param sumMap
@@ -116,13 +110,12 @@ public class RegionDistributionService {
      */
     private RegionDistributionModel convertCountryModel(RegionDistributionModel regionDistributionModel, Map<String, String> filterMap, Map<String, String> sumMap) {
 
-        if (MapUtils.isEmpty(filterMap) || MapUtils.isEmpty(sumMap))
-            return regionDistributionModel;
+        if (MapUtils.isEmpty(filterMap) || MapUtils.isEmpty(sumMap)) return regionDistributionModel;
 
-        //获取所有省份的字典
+        // 获取所有省份的字典
         Map<String, String> dictInfo = dictInfoService.getProvinceInfo();
 
-        //计算比例并且将相应的key转成中文
+        // 计算比例并且将相应的key转成中文
         List<BaseModel> baseModels = new ArrayList<>();
         for (String key : filterMap.keySet()) {
             if (StringUtils.equals("unknown", key)) continue;
@@ -130,6 +123,7 @@ public class RegionDistributionService {
         }
 
         Collections.sort(baseModels, new Comparator<BaseModel>() {
+
             @Override
             public int compare(BaseModel o1, BaseModel o2) {
                 if (o1.getValue() < o2.getValue()) {
@@ -145,9 +139,9 @@ public class RegionDistributionService {
         return regionDistributionModel;
     }
 
-
     /**
      * setProvince
+     * 
      * @param regionDistributionModel
      * @param map
      * @param sumMap
@@ -157,18 +151,17 @@ public class RegionDistributionService {
      */
     private RegionDistributionModel convertProvinceModel(RegionDistributionModel regionDistributionModel, Map<String, String> map, Map<String, String> sumMap) {
 
-        if (MapUtils.isEmpty(map) || MapUtils.isEmpty(sumMap))
-            return regionDistributionModel;
-        //获取所有省份的字典
+        if (MapUtils.isEmpty(map) || MapUtils.isEmpty(sumMap)) return regionDistributionModel;
+        // 获取所有省份的字典
         Map<String, String> dictInfo = dictInfoService.getProvinceInfo();
 
         long sum = 0l;
-        //sum
+        // sum
         for (String key : sumMap.keySet()) {
             sum += Long.parseLong(sumMap.get(key));
         }
 
-        //计算比例并且将相应的key转成中文
+        // 计算比例并且将相应的key转成中文
         List<BaseModel> baseModels = new ArrayList<>();
         for (String key : map.keySet()) {
             if (StringUtils.equals("unknown", key)) continue;
@@ -176,6 +169,7 @@ public class RegionDistributionService {
         }
 
         Collections.sort(baseModels, new Comparator<BaseModel>() {
+
             @Override
             public int compare(BaseModel o1, BaseModel o2) {
                 if (o1.getValue() < o2.getValue()) {
@@ -191,9 +185,7 @@ public class RegionDistributionService {
         return regionDistributionModel;
     }
 
-
     /**
-     *
      * @param personaSummary
      * @param operation
      * @return
@@ -209,7 +201,6 @@ public class RegionDistributionService {
     }
 
     /**
-     *
      * @param personaSummary
      * @param operation
      * @return
@@ -259,9 +250,7 @@ public class RegionDistributionService {
         return boolQueryBuilder;
     }
 
-
     /**
-     *
      * @param personaSummary
      * @param countfield
      * @param operation
@@ -311,8 +300,8 @@ public class RegionDistributionService {
         for (String field : FIELDS) {
             if (field.equals(countfield)) {
                 boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery(field, NIL_STR));
-//                boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery(field, "-1"));
-//                boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery(field, "unknown"));
+                // boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery(field, "-1"));
+                // boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery(field, "unknown"));
             } else {
                 boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(field, NIL_STR));
             }
@@ -321,23 +310,21 @@ public class RegionDistributionService {
 
     }
 
-
     private String getValueByField(PersonaSummary personaSummary, String countfield) throws Exception {
         Field field = personaSummary.getClass().getDeclaredField(countfield);
         field.setAccessible(true);
         return field.get(personaSummary).toString();
     }
 
-
     /**
      * task
      */
     class Task implements Callable {
 
-        private BoolQueryBuilder boolQueryBuilder;
-        private String attrField;
-        private String countField;
-        private String key;
+        private BoolQueryBuilder                 boolQueryBuilder;
+        private String                           attrField;
+        private String                           countField;
+        private String                           key;
         private Map<String, Map<String, String>> resultMap;
 
         public Task(BoolQueryBuilder boolQueryBuilder, String attrField, String countField, Map<String, Map<String, String>> resultMap, String key) {
@@ -353,10 +340,7 @@ public class RegionDistributionService {
             try {
 
                 Pageable pageable = new PageRequest(0, 1000);
-                SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                        .withPageable(pageable)
-                        .withQuery(boolQueryBuilder)
-                        .build();
+                SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable).withQuery(boolQueryBuilder).build();
 
                 Page<PersonaSummary> search = personaSummaryppingRepository.search(searchQuery);
                 Map<String, String> result = new HashMap<>();
@@ -375,6 +359,5 @@ public class RegionDistributionService {
 
         }
     }
-
 
 }

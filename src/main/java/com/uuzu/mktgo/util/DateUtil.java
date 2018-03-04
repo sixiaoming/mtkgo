@@ -1,14 +1,14 @@
 package com.uuzu.mktgo.util;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author zj_pc
@@ -26,7 +26,6 @@ public class DateUtil {
         String dateString = formatter.format(currentTime);
         return dateString;
     }
-
 
     public static String getLastMonth() {
         Calendar cal = Calendar.getInstance();
@@ -64,33 +63,33 @@ public class DateUtil {
         }
     }
 
-
     public static String getLastSixMonthDate(String dateStr) throws ParseException {
-        Calendar c = Calendar.getInstance();//获得一个日历的实例
+        Calendar c = Calendar.getInstance();// 获得一个日历的实例
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
         Date date = null;
-        date = sdf.parse(dateStr);//初始日期
-        c.setTime(date);//设置日历时间
-        c.add(Calendar.MONTH, -5);//在日历的月份上增加6个月
-               return sdf.format(c.getTime());
+        date = sdf.parse(dateStr);// 初始日期
+        c.setTime(date);// 设置日历时间
+        c.add(Calendar.MONTH, -5);// 在日历的月份上增加6个月
+        return sdf.format(c.getTime());
     }
+
     public static String getLastMonthDate(String dateStr) throws ParseException {
-        Calendar c = Calendar.getInstance();//获得一个日历的实例
+        Calendar c = Calendar.getInstance();// 获得一个日历的实例
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
         Date date = null;
-        date = sdf.parse(dateStr);//初始日期
-        c.setTime(date);//设置日历时间
-        c.add(Calendar.MONTH, -1);//在日历的月份上增加6个月
-               return sdf.format(c.getTime());
+        date = sdf.parse(dateStr);// 初始日期
+        c.setTime(date);// 设置日历时间
+        c.add(Calendar.MONTH, -1);// 在日历的月份上增加6个月
+        return sdf.format(c.getTime());
     }
 
     public static String getLastMonthDate(String dateStr, int before) throws ParseException {
-        Calendar c = Calendar.getInstance();//获得一个日历的实例
+        Calendar c = Calendar.getInstance();// 获得一个日历的实例
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
         Date date = null;
-        date = sdf.parse(dateStr);//初始日期
-        c.setTime(date);//设置日历时间
-        c.add(Calendar.MONTH, -before);//在日历的月份上增加before
+        date = sdf.parse(dateStr);// 初始日期
+        c.setTime(date);// 设置日历时间
+        c.add(Calendar.MONTH, -before);// 在日历的月份上增加before
         return sdf.format(c.getTime());
     }
 
@@ -98,19 +97,18 @@ public class DateUtil {
         String[] dateStrs = new String[monthBefore];
         dateStrs[0] = dateStr;
         for (int i = 1; i < monthBefore; i++) {
-            Calendar c = Calendar.getInstance();//获得一个日历的实例
+            Calendar c = Calendar.getInstance();// 获得一个日历的实例
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
             Date date = null;
-            date = sdf.parse(dateStr);//初始日期
-            c.setTime(date);//设置日历时间
-            c.add(Calendar.MONTH, -i);//在日历的月份上增加6个月
+            date = sdf.parse(dateStr);// 初始日期
+            c.setTime(date);// 设置日历时间
+            c.add(Calendar.MONTH, -i);// 在日历的月份上增加6个月
 
             dateStrs[i] = sdf.format(c.getTime());
         }
 
         return dateStrs;
     }
-
 
     public static void main(String[] args) throws ParseException {
 
@@ -120,4 +118,4 @@ public class DateUtil {
         }
 
     }
-  }
+}

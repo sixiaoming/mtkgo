@@ -1,23 +1,17 @@
 package com.uuzu.mktgo.elasticsearch;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
-
-
-/**
- * @author shieh
- */
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(indexName = "conversation_201711", type = "brand_fans_summary", shards = 5, refreshInterval = "-1")
 public class BrandFansSummary {
-
 
     @Id
     private String row_key;
@@ -48,24 +42,8 @@ public class BrandFansSummary {
 
     @Override
     public String toString() {
-        return "BrandFansSummary{" +
-                "row_key='" + row_key + '\'' +
-                ", carrier_new='" + carrier_new + '\'' +
-                ", agebin='" + agebin + '\'' +
-                ", car='" + car + '\'' +
-                ", country='" + country + '\'' +
-                ", brand='" + brand + '\'' +
-                ", segment='" + segment + '\'' +
-                ", married='" + married + '\'' +
-                ", edu='" + edu + '\'' +
-                ", network_new='" + network_new + '\'' +
-                ", income='" + income + '\'' +
-                ", house='" + house + '\'' +
-                ", province='" + province + '\'' +
-                ", kids='" + kids + '\'' +
-                ", mnt='" + mnt + '\'' +
-                ", occupation='" + occupation + '\'' +
-                ", gender='" + gender + '\'' +
-                '}';
+        return "BrandFansSummary{" + "row_key='" + row_key + '\'' + ", carrier_new='" + carrier_new + '\'' + ", agebin='" + agebin + '\'' + ", car='" + car + '\'' + ", country='" + country + '\'' + ", brand='" + brand
+               + '\'' + ", segment='" + segment + '\'' + ", married='" + married + '\'' + ", edu='" + edu + '\'' + ", network_new='" + network_new + '\'' + ", income='" + income + '\'' + ", house='" + house + '\''
+               + ", province='" + province + '\'' + ", kids='" + kids + '\'' + ", mnt='" + mnt + '\'' + ", occupation='" + occupation + '\'' + ", gender='" + gender + '\'' + '}';
     }
 }

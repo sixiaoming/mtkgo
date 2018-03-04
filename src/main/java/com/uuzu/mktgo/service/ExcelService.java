@@ -1,14 +1,16 @@
 package com.uuzu.mktgo.service;
 
-import com.uuzu.mktgo.pojo.*;
-import com.uuzu.mktgo.util.ExcelUtil;
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.uuzu.mktgo.pojo.*;
+import com.uuzu.mktgo.util.ExcelUtil;
 
 /**
  * @author zhoujin
@@ -21,28 +23,28 @@ public class ExcelService {
     private ChangePhonePeriodService changePhonePeriodService;
 
     @Autowired
-    ChangePhoneTrendService changePhoneTrendService;
+    ChangePhoneTrendService          changePhoneTrendService;
 
     @Autowired
-    RegionDistributionService regionDistributionService;
+    RegionDistributionService        regionDistributionService;
 
     @Autowired
-    MediaAnalysisService mediaAnalysisService;
+    MediaAnalysisService             mediaAnalysisService;
 
     @Autowired
-    StandardPortraitService standardPortraitService;
+    StandardPortraitService          standardPortraitService;
 
     @Autowired
-    OverviewBrandService overviewBrandService;
+    OverviewBrandService             overviewBrandService;
 
     @Autowired
-    OverviewModelService overviewModelService;
+    OverviewModelService             overviewModelService;
 
     @Autowired
-    FansPortraitService fansPortraitService;
+    FansPortraitService              fansPortraitService;
 
     @Autowired
-    OverviewAllService overviewAllService;
+    OverviewAllService               overviewAllService;
 
     /**
      * @param wb
@@ -141,7 +143,6 @@ public class ExcelService {
         }
 
     }
-
 
     /**
      * @param wb

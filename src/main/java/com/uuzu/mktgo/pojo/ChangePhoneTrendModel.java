@@ -1,3 +1,6 @@
+/*
+ * Copyright 2015-2020 msun.com All right reserved.
+ */
 package com.uuzu.mktgo.pojo;
 
 import lombok.Data;
@@ -7,7 +10,8 @@ import lombok.Data;
  */
 @Data
 public class ChangePhoneTrendModel {
+
     private SourcePortraitModel source;
-    private TrendPortraitModel trend;
-    private TrendModel modelInfo;
+    private TrendPortraitModel  trend;
+    private TrendModel          modelInfo;
 }

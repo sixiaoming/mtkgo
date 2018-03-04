@@ -19,10 +19,10 @@
             <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
-        <file>/data/logs/mob-mktgo/mob-mktgo.log</file>
+        <file>/data/logs/mob-mktgo/mob-testmktgo.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--日志文件输出的文件名-->
-            <FileNamePattern>/data/logs/mob-mktgo/mob-mktgo.log.%d{yyyy-MM-dd}</FileNamePattern>
+            <FileNamePattern>/data/logs/mob-mktgo/mob-testmktgo.log.%d{yyyy-MM-dd}</FileNamePattern>
             <!--日志文件保留天数-->
             <MaxHistory>30</MaxHistory>
 

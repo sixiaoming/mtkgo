@@ -1,3 +1,6 @@
+/*
+ * Copyright 2015-2020 msun.com All right reserved.
+ */
 package com.uuzu.mktgo.pojo;
 
 import java.util.HashMap;
@@ -6,8 +9,8 @@ import java.util.Map;
 /**
  * @author zj_pc
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class Dictionary {
-
 
     public static Map getIdType(String idCode) {
         return idTypeMap.get(idCode);

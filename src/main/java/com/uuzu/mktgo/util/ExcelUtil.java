@@ -1,18 +1,16 @@
 package com.uuzu.mktgo.util;
 
-import com.uuzu.mktgo.pojo.BaseModel;
-import com.uuzu.mktgo.pojo.BaseModelByPercent;
-import com.uuzu.mktgo.pojo.MediaAnalysisModel;
-import com.uuzu.mktgo.pojo.OverviewBaseModel;
+import java.text.DecimalFormat;
+import java.util.List;
+
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
-import java.text.DecimalFormat;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import com.uuzu.mktgo.pojo.BaseModel;
+import com.uuzu.mktgo.pojo.MediaAnalysisModel;
+import com.uuzu.mktgo.pojo.OverviewBaseModel;
 
 /**
  * @author zhoujin
@@ -40,9 +38,8 @@ public class ExcelUtil {
         cell.setCellValue(newContent);
     }
 
-
     /**
-     * excel通过坐标写值  格式化
+     * excel通过坐标写值 格式化
      *
      * @param sheet
      * @param newContent
@@ -84,7 +81,6 @@ public class ExcelUtil {
             x++;
         }
     }
-
 
     /**
      * excel通过坐标写入list值
@@ -142,7 +138,6 @@ public class ExcelUtil {
         }
     }
 
-
     /**
      * excel通过坐标写入list值
      *
@@ -164,6 +159,4 @@ public class ExcelUtil {
             x++;
         }
     }
-
-
 }
