@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 msun.com All right reserved.
+ * Copyright 2015-2020 mob.com All right reserved.
  */
 package com.uuzu.mktgo.pojo;
 
