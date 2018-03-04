@@ -1,14 +1,15 @@
+/*
+ * Copyright 2015-2020 msun.com All right reserved.
+ */
 package com.uuzu.mktgo.pojo;
-
-import lombok.Data;
 
 import java.util.List;
 
-/**
- * Created by shieh on 2017/10/19.
- */
+import lombok.Data;
+
 @Data
 public class TrendPortraitModel {
+
     private List<BaseModel> gender;
     private List<BaseModel> agebin;
     private List<BaseModel> income;

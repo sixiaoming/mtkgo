@@ -1,14 +1,15 @@
+/*
+ * Copyright 2015-2020 msun.com All right reserved.
+ */
 package com.uuzu.mktgo.elasticsearch;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
-/**
- * @author zhoujin
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,7 +26,6 @@ public class FullAppInfoMonthlySummary {
     private String apppkg;
     private String price_range;
 
-
     public FullAppInfoMonthlySummary(String brand, String model, String price_range, String country, String province, String date) {
         this.model = model;
         this.country = country;
@@ -37,15 +37,7 @@ public class FullAppInfoMonthlySummary {
 
     @Override
     public String toString() {
-        return "FullAppInfoMonthlySummary{" +
-                "model='" + model + '\'' +
-                ", country='" + country + '\'' +
-                ", brand='" + brand + '\'' +
-                ", province='" + province + '\'' +
-                ", row_key='" + row_key + '\'' +
-                ", mnt='" + mnt + '\'' +
-                ", apppkg='" + apppkg + '\'' +
-                ", price_range='" + price_range + '\'' +
-                '}';
+        return "FullAppInfoMonthlySummary{" + "model='" + model + '\'' + ", country='" + country + '\'' + ", brand='" + brand + '\'' + ", province='" + province + '\'' + ", row_key='" + row_key + '\'' + ", mnt='" + mnt
+               + '\'' + ", apppkg='" + apppkg + '\'' + ", price_range='" + price_range + '\'' + '}';
     }
 }

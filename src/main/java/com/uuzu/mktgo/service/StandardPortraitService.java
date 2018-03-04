@@ -1,15 +1,5 @@
 package com.uuzu.mktgo.service;
 
-import com.uuzu.mktgo.elasticsearch.PersonaSummary;
-import com.uuzu.mktgo.mapper.DateMonthMapper;
-import com.uuzu.mktgo.pojo.BaseModel;
-import com.uuzu.mktgo.pojo.OperationEnum;
-import com.uuzu.mktgo.pojo.StandardPortraitModel;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -17,10 +7,20 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
+
+import com.uuzu.mktgo.elasticsearch.PersonaSummary;
+import com.uuzu.mktgo.mapper.DateMonthMapper;
+import com.uuzu.mktgo.pojo.BaseModel;
+import com.uuzu.mktgo.pojo.OperationEnum;
+import com.uuzu.mktgo.pojo.StandardPortraitModel;
+
 /**
- * 标准画像接口
- * V2.0
- * es+hbase架构
+ * 标准画像接口 V2.0 es+hbase架构
  *
  * @author zhoujin
  */
@@ -31,34 +31,32 @@ public class StandardPortraitService {
     @Autowired
     private ElasticsearchService elasticsearchService;
     @Autowired
-    private HbaseService hbaseService;
+    private HbaseService         hbaseService;
     @Autowired
-    DateMonthMapper dateMonthMapper;
+    DateMonthMapper              dateMonthMapper;
     @Autowired
-    DictInfoService dictInfoService;
-
+    DictInfoService              dictInfoService;
 
     /**
      * 标准画像接口
      *
-     * @param brand    品牌
-     * @param model    机型
-     * @param price    价位
-     * @param country  国家
+     * @param brand 品牌
+     * @param model 机型
+     * @param price 价位
+     * @param country 国家
      * @param province 省份
      */
-    public StandardPortraitModel standardPortrait(String brand, String model, String price, String country,
-                                                  String province) throws Exception {
+    public StandardPortraitModel standardPortrait(String brand, String model, String price, String country, String province) throws Exception {
         StandardPortraitModel standardPortraitModel = new StandardPortraitModel();
 
-        //获取最大日期
+        // 获取最大日期
         String maxMonth = dateMonthMapper.queryMaxMonth();
 
-        //条件
+        // 条件
         PersonaSummary personaSummary = new PersonaSummary(model, brand, price, country, province, maxMonth);
 
         CompletionService completionService = new ExecutorCompletionService(threadPoolTaskExecutor);
-        long startTime=System.currentTimeMillis();//记录开始时间
+        long startTime = System.currentTimeMillis();// 记录开始时间
         completionService.submit(new Task(personaSummary, "gender", "imei_count", standardPortraitModel));
         completionService.submit(new Task(personaSummary, "agebin", "imei_count", standardPortraitModel));
         completionService.submit(new Task(personaSummary, "income", "imei_count", standardPortraitModel));
@@ -76,29 +74,23 @@ public class StandardPortraitService {
             Future<String> future = completionService.take();
         }
 
-        long endTime=System.currentTimeMillis();//记录结束时间
-        float excTime=(float)(endTime-startTime)/1000;
-
-        System.out.println("执行时间："+excTime+"s");
-
-
+        long endTime = System.currentTimeMillis();// 记录结束时间
+        float excTime = (float) (endTime - startTime) / 1000;
+        log.info("执行时间：" + excTime + "s");
         return standardPortraitModel;
-
     }
 
-
     public StandardPortraitModel convertModelByFieldAndMap(StandardPortraitModel standardPortraitModel, Map<String, String> map, String countfield) throws NoSuchFieldException, IllegalAccessException {
-        //获取所有的字典
+        // 获取所有的字典
         Map<String, Map<String, String>> dictInfo = dictInfoService.getDictInfo();
 
-
         long sum = 0l;
-        //sum
+        // sum
         for (String key : map.keySet()) {
             sum += Long.parseLong(map.get(key));
         }
 
-        //计算比例并且将相应的key转成中文
+        // 计算比例并且将相应的key转成中文
         List<BaseModel> baseModels = new ArrayList<>();
         for (String key : map.keySet()) {
             if ("carrier".equals(countfield)) {
@@ -110,6 +102,7 @@ public class StandardPortraitService {
         }
 
         Collections.sort(baseModels, new Comparator<BaseModel>() {
+
             @Override
             public int compare(BaseModel o1, BaseModel o2) {
                 if (o1.getValue() < o2.getValue()) {
@@ -126,8 +119,7 @@ public class StandardPortraitService {
             baseModels = baseModels.subList(0, 10);
         }
 
-
-        //通过字段反射设置对象的值
+        // 通过字段反射设置对象的值
         if (map != null) {
             Field field = standardPortraitModel.getClass().getDeclaredField(countfield);
             field.setAccessible(true);
@@ -142,11 +134,11 @@ public class StandardPortraitService {
     /**
      * fansPortrait task
      */
-    class Task implements Callable {
+    class Task implements Callable<Object> {
 
-        private PersonaSummary personaSummary;
-        private String countfield;
-        private String field;
+        private PersonaSummary        personaSummary;
+        private String                countfield;
+        private String                field;
         private StandardPortraitModel standardPortraitModel;
 
         public Task(PersonaSummary personaSummary, String countfield, String field, StandardPortraitModel standardPortraitModel) {
@@ -159,23 +151,18 @@ public class StandardPortraitService {
         @Override
         public String call() {
             try {
-                //先从es中获取相应的rowkey
+                // 先从es中获取相应的rowkey
                 Map<String, String> esRowKeys = elasticsearchService.getRowKeyByEs(personaSummary, countfield, OperationEnum.EQ.getOperation());
-                //将相应的rowkey从hbase中获取对应的结果
-                Map<String, String> hbaseResult = hbaseService.getResultByHbase(esRowKeys, field,"persona_summary_prod");
-                //将结果转换并计算百分比
+                // 将相应的rowkey从hbase中获取对应的结果
+                Map<String, String> hbaseResult = hbaseService.getResultByHbase(esRowKeys, field, "persona_summary_prod");
+                // 将结果转换并计算百分比
                 convertModelByFieldAndMap(standardPortraitModel, hbaseResult, countfield);
-
-
 
                 return "success";
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
             return null;
-
         }
     }
-
-
 }

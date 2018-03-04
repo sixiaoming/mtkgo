@@ -1,15 +1,16 @@
 package com.uuzu.mktgo.util;
 
-import com.alibaba.fastjson.JSONObject;
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import java.io.IOException;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
+
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author zhoujin
@@ -17,21 +18,22 @@ import java.io.IOException;
 @Slf4j
 @Service
 public class HttpUtil {
+
     private static final MediaType MEDIA_TYPE_BY_JSON = MediaType.parse("application/json;charset=utf-8");
-    private static final String HIVE_API_URL = "http://10.6.30.199:8888/mobeye-bi/api/query";
+    private static final String    HIVE_API_URL       = "http://10.6.30.199:8888/mobeye-bi/api/query";
 
     @Autowired
-    private OkHttpClient okHttpClient;
+    private OkHttpClient           okHttpClient;
 
-    private static HttpUtil httpUtil;
+    private static HttpUtil        httpUtil;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         httpUtil = this;
         httpUtil.okHttpClient = this.okHttpClient;
     }
 
-    public OkHttpClient getOkHttpClient(){
+    public OkHttpClient getOkHttpClient() {
         return okHttpClient;
     }
 

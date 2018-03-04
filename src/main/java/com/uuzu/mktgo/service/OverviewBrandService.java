@@ -1,12 +1,14 @@
 package com.uuzu.mktgo.service;
 
-import com.uuzu.mktgo.elasticsearch.PersonaSummary;
-import com.uuzu.mktgo.elasticsearch.PersonaSummaryppingRepository;
-import com.uuzu.mktgo.mapper.BrandModelMappingNewMapper;
-import com.uuzu.mktgo.mapper.DateMonthMapper;
-import com.uuzu.mktgo.pojo.*;
-import com.uuzu.mktgo.util.DateUtil;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Future;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -21,40 +23,39 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
+import com.uuzu.mktgo.elasticsearch.PersonaSummary;
+import com.uuzu.mktgo.elasticsearch.PersonaSummaryppingRepository;
+import com.uuzu.mktgo.mapper.BrandModelMappingNewMapper;
+import com.uuzu.mktgo.mapper.DateMonthMapper;
+import com.uuzu.mktgo.pojo.*;
+import com.uuzu.mktgo.util.DateUtil;
 
 @Service
 @Slf4j
 public class OverviewBrandService {
 
-    private static final String HBASE_TABLE = "persona_summary_prod";
-    private static final String NULLSRT = "NIL";
-    private static final String SPLIT_SYMBOL = "@";//分子
-    private static final String SPLIT_SYMBOL2="#";
+    private static final String   HBASE_TABLE   = "persona_summary_prod";
+    private static final String   NULLSRT       = "NIL";
+    private static final String   SPLIT_SYMBOL  = "@";                   // 分子
+    private static final String   SPLIT_SYMBOL2 = "#";
 
     @Autowired
-    BrandModelMappingNewMapper brandModelMappingNewMapper;
+    BrandModelMappingNewMapper    brandModelMappingNewMapper;
 
     @Autowired
-    private HbaseService hbaseService;
+    private HbaseService          hbaseService;
     @Autowired
-    DateMonthMapper dateMonthMapper;
+    DateMonthMapper               dateMonthMapper;
 
     @Autowired
     PersonaSummaryppingRepository personaSummaryppingRepository;
     @Autowired
-    DictInfoService dictInfoService;
+    DictInfoService               dictInfoService;
 
     @Autowired
-    PicService picService;
+    PicService                    picService;
 
     /**
-     *
      * @param brand
      * @param price
      * @param country
@@ -63,8 +64,8 @@ public class OverviewBrandService {
      * @return
      * @throws Exception
      */
-    public OverviewModel overviewBrand(String brand, String price, String country, String province, String date) throws Exception{
-//        long start = System.currentTimeMillis();
+    public OverviewModel overviewBrand(String brand, String price, String country, String province, String date) throws Exception {
+        // long start = System.currentTimeMillis();
         OverviewModel overviewModel = new OverviewModel();
 
         Map<String, Map<String, String>> list = new HashMap<String, Map<String, String>>();
@@ -75,70 +76,65 @@ public class OverviewBrandService {
             // holdingRankRowKey
             PersonaSummary personaSummary = new PersonaSummary(null, brand, price, country, province, date);
             // 将查询出的row key在hbase查询出值按imei_count降序 取出brand的所在位置。
-            completionService.submit(new OverviewBrandService.Task(getHoldingRankBoolQuery(generateBoolQuery(personaSummary, "brand", OperationEnum.EQ.getOperation())),
-                    "brand", "imei_count", 1000,  list, "holdingRank"));
+            completionService.submit(new OverviewBrandService.Task(getHoldingRankBoolQuery(generateBoolQuery(personaSummary, "brand", OperationEnum.EQ.getOperation())), "brand", "imei_count", 1000, list, "holdingRank"));
             sixMonths = DateUtil.getLastSixMonthDate(date, 6);
             for (String dateStr : sixMonths) {
                 PersonaSummary personaSummaryByDate = new PersonaSummary(null, brand, price, country, province, dateStr);
-                completionService.submit(new OverviewBrandService.Task(getSumByMonthBoolQuery(generateBoolQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation())),
-                        "mnt", "imei_count", 1000, list, dateStr));
+                completionService.submit(new OverviewBrandService.Task(getSumByMonthBoolQuery(generateBoolQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation())), "mnt", "imei_count", 1000, list, dateStr));
                 // sumRowKeysByCondition
-                completionService.submit(new OverviewBrandService.Task(getSumByConditionBoolQuery(generateBoolQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation()), brand),
-                        "mnt", "imei_count", 1000, list, dateStr + SPLIT_SYMBOL));
-                //计算unknown
-                completionService.submit(new OverviewBrandService.Task(generateBoolForUnknownQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation()),
-                        "mnt","imei_count",1000,list,dateStr + SPLIT_SYMBOL2));
+                completionService.submit(new OverviewBrandService.Task(getSumByConditionBoolQuery(generateBoolQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation()), brand), "mnt", "imei_count", 1000, list,
+                                                                       dateStr + SPLIT_SYMBOL));
+                // 计算unknown
+                completionService.submit(new OverviewBrandService.Task(generateBoolForUnknownQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation()), "mnt", "imei_count", 1000, list, dateStr + SPLIT_SYMBOL2));
 
             }
             // hot sell rank
-            completionService.submit(new OverviewBrandService.Task(getHotSellRankBoolQuery(generateBoolQuery(personaSummary, "model", OperationEnum.EQ.getOperation()), brand),
-                    "model", "imei_count", 1000, list, "hotSellMap"));
+            completionService.submit(new OverviewBrandService.Task(getHotSellRankBoolQuery(generateBoolQuery(personaSummary, "model", OperationEnum.EQ.getOperation()), brand), "model", "imei_count", 1000, list,
+                                                                   "hotSellMap"));
 
             // px rank
-            completionService.submit(new OverviewBrandService.Task(getPxRankBoolQuery(generateBoolQuery(personaSummary, "screensize", OperationEnum.EQ.getOperation()), brand),
-                    "screensize", "imei_count", 10000, list, "pxRank"));
+            completionService.submit(new OverviewBrandService.Task(getPxRankBoolQuery(generateBoolQuery(personaSummary, "screensize", OperationEnum.EQ.getOperation()), brand), "screensize", "imei_count", 10000, list,
+                                                                   "pxRank"));
 
             // os rank
-            completionService.submit(new OverviewBrandService.Task(getOsRankBoolQuery(generateBoolQuery(personaSummary, "sysver", OperationEnum.EQ.getOperation()), brand),
-                    "sysver", "imei_count", 1000, list, "osRank"));
+            completionService.submit(new OverviewBrandService.Task(getOsRankBoolQuery(generateBoolQuery(personaSummary, "sysver", OperationEnum.EQ.getOperation()), brand), "sysver", "imei_count", 1000, list, "osRank"));
 
         } else {
 
             PersonaSummary personaSummary = new PersonaSummary(null, brand, price, country, province, date);
 
-            completionService.submit(new OverviewBrandService.Task(getHoldingRankBoolQuery(generateBoolQuery(personaSummary, "brand", OperationEnum.EQ.getOperation())),
-                    "brand", "imei_count_incr", 1000,  list, "holdingRank"));
+            completionService.submit(new OverviewBrandService.Task(getHoldingRankBoolQuery(generateBoolQuery(personaSummary, "brand", OperationEnum.EQ.getOperation())), "brand", "imei_count_incr", 1000, list,
+                                                                   "holdingRank"));
             sixMonths = DateUtil.getLastSixMonthDate(date, 6);
             for (String dateStr : sixMonths) {
                 PersonaSummary personaSummaryByDate = new PersonaSummary(null, brand, price, country, province, dateStr);
-                completionService.submit(new OverviewBrandService.Task(getSumByMonthBoolQuery(generateBoolQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation())),
-                        "mnt", "imei_count_incr", 1000, list, dateStr));
+                completionService.submit(new OverviewBrandService.Task(getSumByMonthBoolQuery(generateBoolQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation())), "mnt", "imei_count_incr", 1000, list,
+                                                                       dateStr));
                 // sumRowKeysByCondition
-                completionService.submit(new OverviewBrandService.Task(getSumByConditionBoolQuery(generateBoolQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation()), brand),
-                        "mnt", "imei_count_incr", 1000, list, dateStr + SPLIT_SYMBOL));
-                completionService.submit(new OverviewBrandService.Task(generateBoolForUnknownQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation()),
-                        "mnt","imei_count_incr",1000,list,dateStr + SPLIT_SYMBOL2));
+                completionService.submit(new OverviewBrandService.Task(getSumByConditionBoolQuery(generateBoolQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation()), brand), "mnt", "imei_count_incr", 1000,
+                                                                       list, dateStr + SPLIT_SYMBOL));
+                completionService.submit(new OverviewBrandService.Task(generateBoolForUnknownQuery(personaSummaryByDate, "mnt", OperationEnum.EQ.getOperation()), "mnt", "imei_count_incr", 1000, list, dateStr
+                                                                                                                                                                                                        + SPLIT_SYMBOL2));
             }
 
-            completionService.submit(new OverviewBrandService.Task(getHotSellRankBoolQuery(generateBoolQuery(personaSummary, "model", OperationEnum.EQ.getOperation()), brand),
-                    "model", "imei_count_incr", 1000, list, "hotSellMap"));
+            completionService.submit(new OverviewBrandService.Task(getHotSellRankBoolQuery(generateBoolQuery(personaSummary, "model", OperationEnum.EQ.getOperation()), brand), "model", "imei_count_incr", 1000, list,
+                                                                   "hotSellMap"));
 
-            completionService.submit(new OverviewBrandService.Task(getPxRankBoolQuery(generateBoolQuery(personaSummary, "screensize", OperationEnum.EQ.getOperation()), brand),
-                    "screensize", "imei_count_incr", 10000, list, "pxRank"));
+            completionService.submit(new OverviewBrandService.Task(getPxRankBoolQuery(generateBoolQuery(personaSummary, "screensize", OperationEnum.EQ.getOperation()), brand), "screensize", "imei_count_incr", 10000,
+                                                                   list, "pxRank"));
 
-            completionService.submit(new OverviewBrandService.Task(getOsRankBoolQuery(generateBoolQuery(personaSummary, "sysver", OperationEnum.EQ.getOperation()), brand),
-                    "sysver", "imei_count_incr", 1000, list, "osRank"));
+            completionService.submit(new OverviewBrandService.Task(getOsRankBoolQuery(generateBoolQuery(personaSummary, "sysver", OperationEnum.EQ.getOperation()), brand), "sysver", "imei_count_incr", 1000, list,
+                                                                   "osRank"));
         }
-        for (int i = 0; i < 22;i++) {
+        for (int i = 0; i < 22; i++) {
             Future<String> future = completionService.take();
-//            log.info("thread=====" + future.get());
+            // log.info("thread=====" + future.get());
         }
         setOverviewModelAttribute(overviewModel, list, brand, date, sixMonths);
-       return overviewModel;
+        return overviewModel;
     }
 
     /**
-     *
      * @param overviewModel
      * @param resultList
      * @param brand
@@ -152,10 +148,10 @@ public class OverviewBrandService {
         Map<String, String> pxRankMap = resultList.get("pxRank");
         Map<String, String> osRankMap = resultList.get("osRank");
 
-        List<Map.Entry<String,String>> list = new ArrayList<Map.Entry<String,String>>(holdingRankMap.entrySet());
-        Collections.sort(list,new Comparator<Map.Entry<String,String>>() {
-            public int compare(Map.Entry<String, String> o1,
-                               Map.Entry<String, String> o2) {
+        List<Map.Entry<String, String>> list = new ArrayList<Map.Entry<String, String>>(holdingRankMap.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, String>>() {
+
+            public int compare(Map.Entry<String, String> o1, Map.Entry<String, String> o2) {
                 if (Long.valueOf(o2.getValue()) - Long.valueOf(o1.getValue()) > 0) {
                     return 1;
                 } else if (Long.valueOf(o1.getValue()) == Long.valueOf(o2.getValue())) {
@@ -174,59 +170,57 @@ public class OverviewBrandService {
 
         overviewModel.setHolding(holding);
 
-
         // top 10 此处需要减少一个unknown
         List<OverviewBaseModel> market_share_brand = new ArrayList<>();
         for (String key : sixMonths) {
             String unknownKey = key + SPLIT_SYMBOL2;
-            Map<String,String> unknownMap = resultList.get(unknownKey);
+            Map<String, String> unknownMap = resultList.get(unknownKey);
             Double unknomnValue = null;
-            if(MapUtils.isEmpty(unknownMap)){
+            if (MapUtils.isEmpty(unknownMap)) {
                 unknomnValue = 0.0;
-            }else{
-                 unknomnValue = Double.parseDouble(unknownMap.get(key));
+            } else {
+                unknomnValue = Double.parseDouble(unknownMap.get(key));
             }
 
-            if (resultList.get(key + SPLIT_SYMBOL).get(key) == null || resultList.get(key).get(key) == null ||
-                    StringUtils.equals(resultList.get(key + SPLIT_SYMBOL).get(key), "null") || StringUtils.equals(resultList.get(key).get(key), "null"))
-                continue;
+            if (resultList.get(key + SPLIT_SYMBOL).get(key) == null || resultList.get(key).get(key) == null || StringUtils.equals(resultList.get(key + SPLIT_SYMBOL).get(key), "null")
+                || StringUtils.equals(resultList.get(key).get(key), "null")) continue;
             market_share_brand.add(new OverviewBaseModel(key, Double.valueOf(resultList.get(key + SPLIT_SYMBOL).get(key)) / (Double.valueOf(resultList.get(key).get(key)) - unknomnValue)));
         }
-
 
         List<OverviewBaseListModel> market_share_brands = new ArrayList<>();
         market_share_brands.add(new OverviewBaseListModel(brand, market_share_brand));
         overviewModel.setMarket_share_brand(market_share_brands);
 
-        overviewModel.setMarket_share_rank(resultList.get(date + SPLIT_SYMBOL).get(date) == null || resultList.get(date).get(date) == null ||
-                StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") || StringUtils.equals(resultList.get(date).get(date), "null") ?
-                0 : Double.valueOf(resultList.get(date + SPLIT_SYMBOL).get(date)) /
-                (Double.valueOf(resultList.get(date).get(date)) - Double.valueOf((resultList.get(date + SPLIT_SYMBOL2) == null || resultList.get(date + SPLIT_SYMBOL2).get(date) == null) ? "0.0" : resultList.get(date + SPLIT_SYMBOL2).get(date))));
+        overviewModel.setMarket_share_rank(resultList.get(date + SPLIT_SYMBOL).get(date) == null || resultList.get(date).get(date) == null || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null")
+                                           || StringUtils.equals(resultList.get(date).get(date), "null") ? 0 : Double.valueOf(resultList.get(date + SPLIT_SYMBOL).get(date))
+                                                                                                               / (Double.valueOf(resultList.get(date).get(date)) - Double.valueOf((resultList.get(date + SPLIT_SYMBOL2) == null || resultList.get(date
+                                                                                                                                                                                                                                                          + SPLIT_SYMBOL2).get(date) == null) ? "0.0" : resultList.get(date
+                                                                                                                                                                                                                                                                                                                               + SPLIT_SYMBOL2).get(date))));
 
         // top 10
         List<BaseModel> hotSellBaseModels = new ArrayList<BaseModel>();
         for (String key : hotSellRankMap.keySet()) {
-            hotSellBaseModels.add(new BaseModel(key, hotSellRankMap.get(key) == null || resultList.get(date + SPLIT_SYMBOL).get(date) == null ||
-                    StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") ?
-                    0 : Double.valueOf(hotSellRankMap.get(key)) / Double.valueOf(resultList.get(date + SPLIT_SYMBOL).get(date))));
+            hotSellBaseModels.add(new BaseModel(key, hotSellRankMap.get(key) == null || resultList.get(date + SPLIT_SYMBOL).get(date) == null || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null")
+                                                     || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") ? 0 : Double.valueOf(hotSellRankMap.get(key))
+                                                                                                                                        / Double.valueOf(resultList.get(date + SPLIT_SYMBOL).get(date))));
         }
         overviewModel.setHot_selling_rank(getTop10(hotSellBaseModels));
 
         // top 10
         List<BaseModel> pxBaseModels = new ArrayList<BaseModel>();
         for (String key : pxRankMap.keySet()) {
-            pxBaseModels.add(new BaseModel(key, pxRankMap.get(key) == null || resultList.get(date + SPLIT_SYMBOL).get(date) == null ||
-                    StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") ?
-                    0 : Double.valueOf(pxRankMap.get(key)) / Double.valueOf(resultList.get(date + SPLIT_SYMBOL).get(date))));
+            pxBaseModels.add(new BaseModel(key, pxRankMap.get(key) == null || resultList.get(date + SPLIT_SYMBOL).get(date) == null || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null")
+                                                || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") ? 0 : Double.valueOf(pxRankMap.get(key))
+                                                                                                                                   / Double.valueOf(resultList.get(date + SPLIT_SYMBOL).get(date))));
         }
         overviewModel.setPx_rank(getTop10(pxBaseModels));
 
         // top 10
         List<BaseModel> osBaseModels = new ArrayList<BaseModel>();
         for (String key : osRankMap.keySet()) {
-            osBaseModels.add(new BaseModel(key, osRankMap.get(key) == null || resultList.get(date + SPLIT_SYMBOL).get(date) == null ||
-                    StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") ?
-                    0 : Double.valueOf(osRankMap.get(key)) / Double.valueOf(resultList.get(date + SPLIT_SYMBOL).get(date))));
+            osBaseModels.add(new BaseModel(key, osRankMap.get(key) == null || resultList.get(date + SPLIT_SYMBOL).get(date) == null || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null")
+                                                || StringUtils.equals(resultList.get(date + SPLIT_SYMBOL).get(date), "null") ? 0 : Double.valueOf(osRankMap.get(key))
+                                                                                                                                   / Double.valueOf(resultList.get(date + SPLIT_SYMBOL).get(date))));
         }
         overviewModel.setOs_rank(getTop10(osBaseModels));
         overviewModel.setBrand(brand);
@@ -235,15 +229,14 @@ public class OverviewBrandService {
 
     }
 
-
     /**
-     *
      * @param list
      * @return
      */
-    private List<BaseModel> getTop10 (List<BaseModel> list){
+    private List<BaseModel> getTop10(List<BaseModel> list) {
         if (CollectionUtils.isEmpty(list)) return list;
         Collections.sort(list, new Comparator<BaseModel>() {
+
             @Override
             public int compare(BaseModel o1, BaseModel o2) {
 
@@ -263,11 +256,7 @@ public class OverviewBrandService {
 
     }
 
-
-
-
     /**
-     *
      * @param boolQueryBuilder
      * @param brand
      * @return
@@ -281,9 +270,7 @@ public class OverviewBrandService {
         return boolQueryBuilder;
     }
 
-
     /**
-     *
      * @param boolQueryBuilder
      * @param brand
      * @return
@@ -294,12 +281,11 @@ public class OverviewBrandService {
     }
 
     /**
-     *
      * @param boolQueryBuilder
      * @param brand
      * @return
      */
-    private BoolQueryBuilder getPxRankBoolQuery(BoolQueryBuilder boolQueryBuilder, String brand){
+    private BoolQueryBuilder getPxRankBoolQuery(BoolQueryBuilder boolQueryBuilder, String brand) {
         if (org.apache.commons.lang.StringUtils.isNotEmpty(brand)) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("brand", brand));
         } else {
@@ -309,12 +295,11 @@ public class OverviewBrandService {
     }
 
     /**
-     *
      * @param boolQueryBuilder
      * @param brand
      * @return
      */
-    private BoolQueryBuilder getHotSellRankBoolQuery(BoolQueryBuilder boolQueryBuilder, String brand){
+    private BoolQueryBuilder getHotSellRankBoolQuery(BoolQueryBuilder boolQueryBuilder, String brand) {
         if (org.apache.commons.lang.StringUtils.isNotEmpty(brand)) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("brand", brand));
         } else {
@@ -329,7 +314,6 @@ public class OverviewBrandService {
     }
 
     /**
-     *
      * @param boolQueryBuilder
      * @param brand
      * @return
@@ -344,11 +328,10 @@ public class OverviewBrandService {
     }
 
     /**
-     *
      * @param boolQueryBuilder
      * @return
      */
-    private BoolQueryBuilder getHoldingRankBoolQuery (BoolQueryBuilder boolQueryBuilder) {
+    private BoolQueryBuilder getHoldingRankBoolQuery(BoolQueryBuilder boolQueryBuilder) {
 
         boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery("brand", NULLSRT));
         boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery("brand", "other"));
@@ -358,7 +341,6 @@ public class OverviewBrandService {
     }
 
     /**
-     *
      * @param boolQueryBuilder
      * @return
      */
@@ -368,13 +350,12 @@ public class OverviewBrandService {
     }
 
     /**
-     *
      * @param personaSummary
      * @param attrField
      * @return
      * @throws Exception
      */
-    private String getValueByField(PersonaSummary personaSummary, String attrField) throws Exception{
+    private String getValueByField(PersonaSummary personaSummary, String attrField) throws Exception {
         Field field = personaSummary.getClass().getDeclaredField(attrField);
         field.setAccessible(true);
         return field.get(personaSummary).toString();
@@ -382,7 +363,6 @@ public class OverviewBrandService {
     }
 
     /**
-     *
      * @param personaSummary
      * @param groupByField
      * @param operation
@@ -394,17 +374,17 @@ public class OverviewBrandService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", personaSummary.getMnt()));
         } else if (org.apache.commons.lang.StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.GTL.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt()));
-        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.LTL.getOperation().equals(operation)){
+        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.LTL.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").lte(personaSummary.getMnt()));
         } else {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", NULLSRT));
         }
 
-//        if (org.apache.commons.lang.StringUtils.isNotEmpty(personaSummary.getBrand())) {
-//            boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("brand", personaSummary.getBrand()));
-//        } else {
-//            boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("brand", NULLSRT));
-//        }
+        // if (org.apache.commons.lang.StringUtils.isNotEmpty(personaSummary.getBrand())) {
+        // boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("brand", personaSummary.getBrand()));
+        // } else {
+        // boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("brand", NULLSRT));
+        // }
 
         if (org.apache.commons.lang.StringUtils.isNotEmpty(personaSummary.getCountry())) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("country", personaSummary.getCountry()));
@@ -424,13 +404,7 @@ public class OverviewBrandService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("price_range", NULLSRT));
         }
 
-        String[] fields = {
-                "income", "carrier", "segment", "agebin",
-                "network", "occupation", "edu", "price",
-                "house", "screensize", "car", "married",
-                "kids", "gender", "sysver", "brand_name",
-                "model"
-        };
+        String[] fields = { "income", "carrier", "segment", "agebin", "network", "occupation", "edu", "price", "house", "screensize", "car", "married", "kids", "gender", "sysver", "brand_name", "model" };
         for (String field : fields) {
             if (field.equals(groupByField)) {
                 boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery(field, NULLSRT));
@@ -443,6 +417,7 @@ public class OverviewBrandService {
 
         return boolQueryBuilder;
     }
+
     private BoolQueryBuilder generateBoolForUnknownQuery(PersonaSummary personaSummary, String groupByField, String operation) {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         if (org.apache.commons.lang.StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.EQ.getOperation().equals(operation)) {
@@ -467,22 +442,16 @@ public class OverviewBrandService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("price_range", NULLSRT));
         }
 
-
         boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("brand_name", "unknown"));
-        String[] fields = {
-                "income", "carrier", "segment", "agebin",
-                "network", "occupation", "edu", "price",
-                "house", "screensize", "car", "married",
-                "kids", "gender", "sysver",
-                "model","brand"
-        };
+        String[] fields = { "income", "carrier", "segment", "agebin", "network", "occupation", "edu", "price", "house", "screensize", "car", "married", "kids", "gender", "sysver", "model", "brand" };
 
         for (String field : fields) {
-             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(field, NULLSRT));
+            boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(field, NULLSRT));
         }
 
         return boolQueryBuilder;
     }
+
     @Autowired
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
@@ -491,11 +460,11 @@ public class OverviewBrandService {
      */
     class Task implements Callable {
 
-        private BoolQueryBuilder boolQueryBuilder;
-        private String attrField;
-        private String countField;
-        private int size;
-        private String key;
+        private BoolQueryBuilder                 boolQueryBuilder;
+        private String                           attrField;
+        private String                           countField;
+        private int                              size;
+        private String                           key;
         private Map<String, Map<String, String>> resultMap;
 
         public Task(BoolQueryBuilder boolQueryBuilder, String attrField, String countField, int size, Map<String, Map<String, String>> resultMap, String key) {
@@ -512,10 +481,7 @@ public class OverviewBrandService {
             try {
 
                 Pageable pageable = new PageRequest(0, size);
-                SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                        .withPageable(pageable)
-                        .withQuery(boolQueryBuilder)
-                        .build();
+                SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable).withQuery(boolQueryBuilder).build();
 
                 Page<PersonaSummary> search = personaSummaryppingRepository.search(searchQuery);
                 Map<String, String> result = new HashMap<>();

@@ -1,6 +1,7 @@
 package com.uuzu.mktgo.config.mysql;
 
-import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
+import javax.sql.DataSource;
+
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
@@ -12,15 +13,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
-import javax.sql.DataSource;
+import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
 
-/**
- *
- * @author lixing
- * @date 2017/6/27
- */
 @Configuration
-@MapperScan(basePackages = "com.uuzu.mktgo.mapper",sqlSessionFactoryRef = "mobMktGoSqlSessionFactory")
+@MapperScan(basePackages = "com.uuzu.mktgo.mapper", sqlSessionFactoryRef = "mobMktGoSqlSessionFactory")
 public class MysqlConfig {
 
     @Value("${mybatis.mapper-locations}")
@@ -31,10 +27,9 @@ public class MysqlConfig {
     @Primary
     @ConfigurationProperties("spring.datasource.druid.mysql")
     @Bean
-    public DataSource mysqlDataSource(){
+    public DataSource mysqlDataSource() {
         return DruidDataSourceBuilder.create().build();
     }
-
 
     @Bean(name = "mobMktGoTransactionManager")
     @Primary
@@ -51,5 +46,4 @@ public class MysqlConfig {
         sessionFactory.setTypeAliasesPackage(typeAliasesPackage);
         return sessionFactory.getObject();
     }
-
 }

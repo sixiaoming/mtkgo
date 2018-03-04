@@ -3,18 +3,16 @@ package com.uuzu.mktgo.elasticsearch;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
-
-/**
- * @author shieh
- */
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(indexName = "mktgo", type = "conversation_persona_summary", shards = 5, refreshInterval = "-1")
 public class ConversationPersonaSummary {
+
     @Id
     private String row_key;
 
@@ -52,28 +50,9 @@ public class ConversationPersonaSummary {
 
     @Override
     public String toString() {
-        return "ConversationPersonaSummary{" +
-                "row_key='" + row_key + '\'' +
-                ", network='" + network + '\'' +
-                ", carrier='" + carrier + '\'' +
-                ", model='" + model + '\'' +
-                ", agebin='" + agebin + '\'' +
-                ", car='" + car + '\'' +
-                ", brand_new='" + brand_new + '\'' +
-                ", country='" + country + '\'' +
-                ", brand='" + brand + '\'' +
-                ", segment='" + segment + '\'' +
-                ", married='" + married + '\'' +
-                ", edu='" + edu + '\'' +
-                ", income='" + income + '\'' +
-                ", house='" + house + '\'' +
-                ", province='" + province + '\'' +
-                ", kids='" + kids + '\'' +
-                ", mnt='" + mnt + '\'' +
-                ", price_range='" + price_range + '\'' +
-                ", occupation='" + occupation + '\'' +
-                ", model_new='" + model_new + '\'' +
-                ", gender='" + gender + '\'' +
-                '}';
+        return "ConversationPersonaSummary{" + "row_key='" + row_key + '\'' + ", network='" + network + '\'' + ", carrier='" + carrier + '\'' + ", model='" + model + '\'' + ", agebin='" + agebin + '\'' + ", car='" + car
+               + '\'' + ", brand_new='" + brand_new + '\'' + ", country='" + country + '\'' + ", brand='" + brand + '\'' + ", segment='" + segment + '\'' + ", married='" + married + '\'' + ", edu='" + edu + '\''
+               + ", income='" + income + '\'' + ", house='" + house + '\'' + ", province='" + province + '\'' + ", kids='" + kids + '\'' + ", mnt='" + mnt + '\'' + ", price_range='" + price_range + '\''
+               + ", occupation='" + occupation + '\'' + ", model_new='" + model_new + '\'' + ", gender='" + gender + '\'' + '}';
     }
 }

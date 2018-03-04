@@ -1,13 +1,9 @@
 package com.uuzu.mktgo.service;
 
-import com.uuzu.mktgo.elasticsearch.CycleSummary;
-import com.uuzu.mktgo.elasticsearch.CycleSummaryRepository;
-import com.uuzu.mktgo.mapper.DateMonthMapper;
-import com.uuzu.mktgo.pojo.BaseModel;
-import com.uuzu.mktgo.pojo.ChangePhonePeriodModel;
-import com.uuzu.mktgo.pojo.OperationEnum;
-import com.uuzu.mktgo.util.DateUtil;
-import lombok.extern.slf4j.Slf4j;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -19,30 +15,31 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.uuzu.mktgo.elasticsearch.CycleSummary;
+import com.uuzu.mktgo.elasticsearch.CycleSummaryRepository;
+import com.uuzu.mktgo.mapper.DateMonthMapper;
+import com.uuzu.mktgo.pojo.BaseModel;
+import com.uuzu.mktgo.pojo.ChangePhonePeriodModel;
+import com.uuzu.mktgo.pojo.OperationEnum;
+import com.uuzu.mktgo.util.DateUtil;
 
 /**
  * Created by shieh on 2017/10/19.
  */
 @Service
-@Slf4j
 public class ChangePhonePeriodService {
 
-    private static final String HBASE_TABLE = "conversation_cycle_summary_prod";
-    private static final String NIL_STR = "NIL";
+    private static final String    HBASE_TABLE = "conversation_cycle_summary_prod";
+    private static final String    NIL_STR     = "NIL";
 
     @Autowired
     private CycleSummaryRepository cycleSummaryRepository;
     @Autowired
-    private HbaseService hbaseService;
+    private HbaseService           hbaseService;
     @Autowired
-    DateMonthMapper dateMonthMapper;
-
+    DateMonthMapper                dateMonthMapper;
 
     /**
-     *
      * @param brand
      * @param model
      * @param price
@@ -51,8 +48,7 @@ public class ChangePhonePeriodService {
      * @return
      * @throws Exception
      */
-    public ChangePhonePeriodModel changePhonePeriod(String brand, String model, String price, String country,
-                                                    String province) throws Exception{
+    public ChangePhonePeriodModel changePhonePeriod(String brand, String model, String price, String country, String province) throws Exception {
         ChangePhonePeriodModel changePhonePeriodModel = new ChangePhonePeriodModel();
         String mnt = dateMonthMapper.queryMaxMonth();
 
@@ -65,19 +61,14 @@ public class ChangePhonePeriodService {
         Map<String, String> durationDaysMap = hbaseService.getResultByHbaseTable(sumRowKeys, "duration_days", HBASE_TABLE);
         convertChangePhonePeriodModel(changePhonePeriodModel, convertToQuarterMap(changeTimesCountMap), convertToQuarterMap(durationDaysMap));
         return changePhonePeriodModel;
-
     }
 
-
     /**
-     *
      * @param changePhonePeriodModel
      * @param changeTimeCountMap
      * @param durationDaysMap
      */
-    private void convertChangePhonePeriodModel(ChangePhonePeriodModel changePhonePeriodModel,
-                                               Map<String, Long> changeTimeCountMap, Map<String, Long> durationDaysMap) {
-
+    private void convertChangePhonePeriodModel(ChangePhonePeriodModel changePhonePeriodModel, Map<String, Long> changeTimeCountMap, Map<String, Long> durationDaysMap) {
         List<BaseModel> baseModels = new ArrayList<>();
         for (String key : changeTimeCountMap.keySet()) {
             baseModels.add(new BaseModel(key, new BigDecimal((float) durationDaysMap.get(key) / changeTimeCountMap.get(key) / 30).setScale(1, BigDecimal.ROUND_HALF_UP).doubleValue()));
@@ -87,22 +78,18 @@ public class ChangePhonePeriodService {
         if (baseModels.size() > 8) {
             baseModels = baseModels.subList(baseModels.size() - 8, baseModels.size());
         }
-
         changePhonePeriodModel.setPeriod(baseModels);
     }
 
-
     /**
-     *
      * @param map
      * @return
      */
     private Map<String, Long> convertToQuarterMap(Map<String, String> map) {
-
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
         Map<String, Integer> result = new HashMap<>();
         Map<String, Long> sumResult = new HashMap<>();
-        for (String key: map.keySet()) {
+        for (String key : map.keySet()) {
             String changeTimeCount = map.get(key);
             try {
                 Date date = sdf.parse(key);
@@ -121,21 +108,18 @@ public class ChangePhonePeriodService {
             } catch (Exception e) {
                 continue;
             }
-
         }
 
-        Map<String, Long> returnResult = new TreeMap<>(( o1, o2)-> o2.compareTo(o1));
+        Map<String, Long> returnResult = new TreeMap<>((o1, o2) -> o2.compareTo(o1));
         for (String s : result.keySet()) {
             if (result.get(s) == 3 && sumResult.get(s) != null) {
                 returnResult.put(s, sumResult.get(s));
             }
         }
-
         return returnResult;
     }
 
     /**
-     *
      * @param cycleSummary
      * @param operation
      * @return
@@ -190,19 +174,13 @@ public class ChangePhonePeriodService {
         }
 
         Pageable pageable = new PageRequest(0, 1000);
-        SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withPageable(pageable)
-                .withQuery(boolQueryBuilder)
-                .build();
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable).withQuery(boolQueryBuilder).build();
 
         Page<CycleSummary> search = cycleSummaryRepository.search(searchQuery);
         Map<String, String> result = new HashMap<>();
         for (CycleSummary summary : search) {
             result.put(summary.getMonth(), summary.getRow_key().replace("\u0000", "\u0001"));
         }
-
         return result;
     }
-
-
 }

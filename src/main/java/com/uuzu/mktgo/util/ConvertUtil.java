@@ -1,18 +1,18 @@
 package com.uuzu.mktgo.util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.uuzu.mktgo.pojo.BaseModel;
 import com.uuzu.mktgo.pojo.OverviewBaseListModel;
 import com.uuzu.mktgo.pojo.OverviewBaseModel;
-import com.uuzu.mktgo.pojo.OverviewModel;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author zhoujin
@@ -21,6 +21,7 @@ public class ConvertUtil {
 
     /***
      * 响应格式转换
+     * 
      * @param content
      * @return
      */
@@ -65,7 +66,7 @@ public class ConvertUtil {
         }
         List<BaseModel> baseModels = new ArrayList<BaseModel>();
         for (Map<String, Object> stringObjectMap : list) {
-            //String key = (String) Dictionary.getIdType(field).get(stringObjectMap.get(field).toString());
+            // String key = (String) Dictionary.getIdType(field).get(stringObjectMap.get(field).toString());
             String key = stringObjectMap.get(field).toString();
             double value = Double.parseDouble(stringObjectMap.get("imei_count").toString());
             baseModels.add(new BaseModel(key, value / sum));
@@ -73,9 +74,9 @@ public class ConvertUtil {
         return baseModels;
     }
 
-
     /**
      * 响应格式转换
+     * 
      * @param content
      * @param field
      * @param columnField
@@ -131,6 +132,7 @@ public class ConvertUtil {
 
     /***
      * 响应格式转换
+     * 
      * @param content
      * @return
      */
@@ -168,12 +170,12 @@ public class ConvertUtil {
             }
             list.add(map);
         }
-        return  list;
+        return list;
     }
 
-
     /***
-     * 响应格式转换  不百分比
+     * 响应格式转换 不百分比
+     * 
      * @param content
      * @return
      */
@@ -214,7 +216,7 @@ public class ConvertUtil {
 
         List<BaseModel> baseModels = new ArrayList<BaseModel>();
         for (Map<String, Object> stringObjectMap : list) {
-            //String key = (String) Dictionary.getIdType(field).get(stringObjectMap.get(field).toString());
+            // String key = (String) Dictionary.getIdType(field).get(stringObjectMap.get(field).toString());
             String key = stringObjectMap.get(field).toString();
             double value = Double.parseDouble(stringObjectMap.get("imei_count").toString());
             baseModels.add(new BaseModel(key, value));
@@ -224,10 +226,11 @@ public class ConvertUtil {
 
     /***
      * 响应格式转换
+     * 
      * @param content
      * @return
      */
-    public static List<BaseModel> parse(String content, String field,Double sum) {
+    public static List<BaseModel> parse(String content, String field, Double sum) {
         if (content == null || StringUtils.isEmpty(content)) {
             return null;
         }
@@ -264,7 +267,7 @@ public class ConvertUtil {
 
         List<BaseModel> baseModels = new ArrayList<BaseModel>();
         for (Map<String, Object> stringObjectMap : list) {
-            //String key = (String) Dictionary.getIdType(field).get(stringObjectMap.get(field).toString());
+            // String key = (String) Dictionary.getIdType(field).get(stringObjectMap.get(field).toString());
             String key = stringObjectMap.get(field).toString();
             double value = Double.parseDouble(stringObjectMap.get("imei_count").toString());
             baseModels.add(new BaseModel(key, value / sum));
@@ -272,14 +275,14 @@ public class ConvertUtil {
         return baseModels;
     }
 
-
     /***
      * 响应格式转换
+     * 
      * @param content
      * @param monthSumMap
      * @return
      */
-    public static List<OverviewBaseListModel> parse1(String content, String field, Map monthSumMap) {
+    public static List<OverviewBaseListModel> parse1(String content, String field, Map<?, ?> monthSumMap) {
         if (content == null || StringUtils.isEmpty(content)) {
             return null;
         }
@@ -328,11 +331,10 @@ public class ConvertUtil {
 
         }
         List<OverviewBaseListModel> overviewBaseListModels = new ArrayList<>();
-        OverviewModel overviewModel = new OverviewModel();
         for (String s : results.keySet()) {
             List<OverviewBaseModel> sumlist = results.get(s);
             for (OverviewBaseModel overviewBaseModel : sumlist) {
-                overviewBaseModel.setValue(overviewBaseModel.getValue()/(Double)(monthSumMap.get(overviewBaseModel.getDate())));
+                overviewBaseModel.setValue(overviewBaseModel.getValue() / (Double) (monthSumMap.get(overviewBaseModel.getDate())));
             }
             overviewBaseListModels.add(new OverviewBaseListModel(s, results.get(s)));
         }

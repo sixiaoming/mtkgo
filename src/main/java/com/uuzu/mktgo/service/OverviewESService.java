@@ -1,11 +1,11 @@
 package com.uuzu.mktgo.service;
 
-import com.uuzu.mktgo.elasticsearch.PersonaSummary;
-import com.uuzu.mktgo.elasticsearch.PersonaSummaryFinalppingRepository;
-import com.uuzu.mktgo.elasticsearch.PersonaSummary_final;
-import com.uuzu.mktgo.elasticsearch.PersonaSummaryppingRepository;
-import com.uuzu.mktgo.pojo.OperationEnum;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -17,9 +17,11 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
+import com.uuzu.mktgo.elasticsearch.PersonaSummary;
+import com.uuzu.mktgo.elasticsearch.PersonaSummaryFinalppingRepository;
+import com.uuzu.mktgo.elasticsearch.PersonaSummary_final;
+import com.uuzu.mktgo.elasticsearch.PersonaSummaryppingRepository;
+import com.uuzu.mktgo.pojo.OperationEnum;
 
 /**
  * @author zhongqi
@@ -32,33 +34,30 @@ public class OverviewESService {
     private PersonaSummaryppingRepository      personaSummaryppingRepository;
     @Autowired
     private PersonaSummaryFinalppingRepository personaSummaryppingRepositoryFinal;
-    private static String NULLSRT = "NIL";
+    private static String                      NULLSRT = "NIL";
 
     /**
-     * 首页概览接口es查询
-     *,String sortField,int pageSize
+     * 首页概览接口es查询 ,String sortField,int pageSize
+     * 
      * @param
      * @return
      */
 
-    public  Page<PersonaSummary> getRowKeyByEs(PersonaSummary personaSummary, String countfield, String operation) throws Exception {
-        BoolQueryBuilder  boolQueryBuilder = handleBoolQueryBuilder(personaSummary,countfield,operation);
+    public Page<PersonaSummary> getRowKeyByEs(PersonaSummary personaSummary, String countfield, String operation) throws Exception {
+        BoolQueryBuilder boolQueryBuilder = handleBoolQueryBuilder(personaSummary, countfield, operation);
         Pageable pageable = new PageRequest(0, 10000);
-        SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withPageable(pageable)
-                .withQuery(boolQueryBuilder)
-                .build();
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable).withQuery(boolQueryBuilder).build();
         Page<PersonaSummary> search = personaSummaryppingRepository.search(searchQuery);
         return search;
     }
 
-    public  Page<PersonaSummary> getRowKeyByEsForHotselling(PersonaSummary personaSummary, String countfield, String operation) throws Exception {
+    public Page<PersonaSummary> getRowKeyByEsForHotselling(PersonaSummary personaSummary, String countfield, String operation) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.EQ.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", personaSummary.getMnt()));
         } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.GTL.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt()));
-        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)){
+        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt().split("\\|")[0]).lte(personaSummary.getMnt().split("\\|")[1]));
         } else {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", NULLSRT));
@@ -79,18 +78,14 @@ public class OverviewESService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("price_range", NULLSRT));
         }
 
-        String[] fields = {"income","model","brand", "sysver", "brand_name", "carrier", "segment", "agebin",
-                "network", "occupation", "edu", "house", "screensize", "car", "married", "kids", "gender"};
-        boolQueryBuilder = boolQueryBuilderFilter(fields,boolQueryBuilder,countfield);
-        //单独处理价格
+        String[] fields = { "income", "model", "brand", "sysver", "brand_name", "carrier", "segment", "agebin", "network", "occupation", "edu", "house", "screensize", "car", "married", "kids", "gender" };
+        boolQueryBuilder = boolQueryBuilderFilter(fields, boolQueryBuilder, countfield);
+        // 单独处理价格
         boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery("price", NULLSRT));
         boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery("price", "-1"));
         boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery("price", "unknown"));
         Pageable pageable = new PageRequest(0, 10000);
-        SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withPageable(pageable)
-                .withQuery(boolQueryBuilder)
-                .build();
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable).withQuery(boolQueryBuilder).build();
         Page<PersonaSummary> search = personaSummaryppingRepository.search(searchQuery);
         Map<String, String> result = new HashMap<>();
         for (PersonaSummary summary : search) {
@@ -99,16 +94,16 @@ public class OverviewESService {
         return search;
     }
 
-    public  Map<String, String> getRowKeyFinal(PersonaSummary_final personaSummary, String countfield, String operation) throws Exception {
+    public Map<String, String> getRowKeyFinal(PersonaSummary_final personaSummary, String countfield, String operation) throws Exception {
 
-         String NULLSRT = "NIL";
+        String NULLSRT = "NIL";
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
         if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.EQ.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", personaSummary.getMnt()));
         } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.GTL.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt()));
-        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)){
+        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt().split("\\|")[0]).lte(personaSummary.getMnt().split("\\|")[1]));
         } else {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", NULLSRT));
@@ -131,10 +126,7 @@ public class OverviewESService {
         }
 
         Pageable pageable = new PageRequest(0, 10000);
-        SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withPageable(pageable)
-                .withQuery(boolQueryBuilder)
-                .build();
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable).withQuery(boolQueryBuilder).build();
         Page<PersonaSummary_final> search = personaSummaryppingRepositoryFinal.search(searchQuery);
         Map<String, String> result = new HashMap<>();
         for (PersonaSummary_final summary : search) {
@@ -143,14 +135,13 @@ public class OverviewESService {
         return result;
     }
 
-
-    public  Map<String, String> getRowKeyByEsForModel(PersonaSummary personaSummary, String countfield, String operation) throws Exception {
+    public Map<String, String> getRowKeyByEsForModel(PersonaSummary personaSummary, String countfield, String operation) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.EQ.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", personaSummary.getMnt()));
         } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.GTL.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt()));
-        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)){
+        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt().split("\\|")[0]).lte(personaSummary.getMnt().split("\\|")[1]));
         } else {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", NULLSRT));
@@ -176,14 +167,10 @@ public class OverviewESService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("model", NULLSRT));
         }
 
-        String[] fields = {"income","brand", "sysver", "brand_name", "carrier", "segment", "agebin",
-                "network", "occupation", "edu", "house", "screensize", "car", "married", "kids", "gender","price"};
-        boolQueryBuilder = boolQueryBuilderFilter(fields,boolQueryBuilder,countfield);
+        String[] fields = { "income", "brand", "sysver", "brand_name", "carrier", "segment", "agebin", "network", "occupation", "edu", "house", "screensize", "car", "married", "kids", "gender", "price" };
+        boolQueryBuilder = boolQueryBuilderFilter(fields, boolQueryBuilder, countfield);
         Pageable pageable = new PageRequest(0, 1000);
-        SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withPageable(pageable)
-                .withQuery(boolQueryBuilder)
-                .build();
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable).withQuery(boolQueryBuilder).build();
         Page<PersonaSummary> search = personaSummaryppingRepository.search(searchQuery);
         Map<String, String> result = new HashMap<>();
         for (PersonaSummary summary : search) {
@@ -192,15 +179,14 @@ public class OverviewESService {
         return result;
     }
 
-    public  Map<String, String> getRowKeyByEsForUnknown(PersonaSummary personaSummary, String countfield, String operation) throws Exception {
-
+    public Map<String, String> getRowKeyByEsForUnknown(PersonaSummary personaSummary, String countfield, String operation) throws Exception {
 
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.EQ.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", personaSummary.getMnt()));
         } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.GTL.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt()));
-        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)){
+        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt().split("\\|")[0]).lte(personaSummary.getMnt().split("\\|")[1]));
         } else {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", NULLSRT));
@@ -221,20 +207,15 @@ public class OverviewESService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("price_range", NULLSRT));
         }
 
-
         boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("model", "unknown"));
 
-        String[] fields = {"income","brand", "sysver", "brand_name", "carrier", "segment", "agebin",
-                "network", "occupation", "edu", "house", "screensize", "car", "married", "kids", "gender","price"};
+        String[] fields = { "income", "brand", "sysver", "brand_name", "carrier", "segment", "agebin", "network", "occupation", "edu", "house", "screensize", "car", "married", "kids", "gender", "price" };
         for (String field : fields) {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(field, NULLSRT));
         }
-        boolQueryBuilder = boolQueryBuilderFilter(fields,boolQueryBuilder,countfield);
+        boolQueryBuilder = boolQueryBuilderFilter(fields, boolQueryBuilder, countfield);
         Pageable pageable = new PageRequest(0, 1000);
-        SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withPageable(pageable)
-                .withQuery(boolQueryBuilder)
-                .build();
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable).withQuery(boolQueryBuilder).build();
         Page<PersonaSummary> search = personaSummaryppingRepository.search(searchQuery);
         Map<String, String> result = new HashMap<>();
         for (PersonaSummary summary : search) {
@@ -243,7 +224,7 @@ public class OverviewESService {
         return result;
     }
 
-    public BoolQueryBuilder handleBoolQueryBuilder(PersonaSummary personaSummary, String countfield,String operation){
+    public BoolQueryBuilder handleBoolQueryBuilder(PersonaSummary personaSummary, String countfield, String operation) {
         String NULLSRT = "NIL";
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
@@ -251,7 +232,7 @@ public class OverviewESService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", personaSummary.getMnt()));
         } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.GTL.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt()));
-        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)){
+        } else if (StringUtils.isNotEmpty(personaSummary.getMnt()) && OperationEnum.BET.getOperation().equals(operation)) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("mnt").gte(personaSummary.getMnt().split("\\|")[0]).lte(personaSummary.getMnt().split("\\|")[1]));
         } else {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("mnt", NULLSRT));
@@ -272,18 +253,16 @@ public class OverviewESService {
         } else {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("price_range", NULLSRT));
         }
-        String[] fields = {"income","model","brand" ,"sysver", "brand_name", "carrier", "segment", "agebin",
-                "network", "occupation", "edu", "price", "house", "screensize", "car", "married", "kids", "gender"};
-        if(countfield.length()>0 && countfield!= null){
-            return boolQueryBuilderFilter(fields,boolQueryBuilder,countfield);
-        }else{
+        String[] fields = { "income", "model", "brand", "sysver", "brand_name", "carrier", "segment", "agebin", "network", "occupation", "edu", "price", "house", "screensize", "car", "married", "kids", "gender" };
+        if (countfield.length() > 0 && countfield != null) {
+            return boolQueryBuilderFilter(fields, boolQueryBuilder, countfield);
+        } else {
             return boolQueryBuilder;
         }
 
-
     }
 
-    public BoolQueryBuilder boolQueryBuilderFilter(String[] fields ,BoolQueryBuilder boolQueryBuilder,String countfield){
+    public BoolQueryBuilder boolQueryBuilderFilter(String[] fields, BoolQueryBuilder boolQueryBuilder, String countfield) {
 
         for (String field : fields) {
             if (field.equals(countfield)) {
@@ -296,11 +275,13 @@ public class OverviewESService {
         }
         return boolQueryBuilder;
     }
+
     public String getValueByField(PersonaSummary personaSummary, String countfield) throws Exception {
         Field field = personaSummary.getClass().getDeclaredField(countfield);
         field.setAccessible(true);
         return field.get(personaSummary).toString();
     }
+
     public String getValueByField(PersonaSummary_final personaSummary, String countfield) throws Exception {
         Field field = personaSummary.getClass().getDeclaredField(countfield);
         field.setAccessible(true);

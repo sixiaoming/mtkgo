@@ -1,19 +1,21 @@
+/*
+ * Copyright 2015-2020 msun.com All right reserved.
+ */
 package com.uuzu.mktgo.elasticsearch;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
-/**
- * @author zhoujin
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(indexName = "rp_mobeye_mktgo", type = "overview_all", shards = 5, refreshInterval = "-1")
 public class PersonaSummary_final {
+
     @Id
     private String row_key;
 
@@ -46,35 +48,11 @@ public class PersonaSummary_final {
 
     @Override
     public String toString() {
-        return "PersonaSummary{" +
-                "row_key='" + row_key + '\'' +
-                ", married='" + married + '\'' +
-                ", agg1='" + agg1 + '\'' +
-                ", agg2='" + agg2 + '\'' +
-                ", imei_count_incr='" + imei_count_incr + '\'' +
-                ", edu='" + edu + '\'' +
-                ", mnt='" + mnt + '\'' +
-                ", carrier='" + carrier + '\'' +
-                ", sysver='" + sysver + '\'' +
-                ", brand_name='" + brand_name + '\'' +
-                ", kids='" + kids + '\'' +
-                ", brand='" + brand + '\'' +
-                ", model='" + model + '\'' +
-                ", segment='" + segment + '\'' +
-                ", price='" + price + '\'' +
-                ", car='" + car + '\'' +
-                ", province='" + province + '\'' +
-                ", imei_count='" + imei_count + '\'' +
-                ", network='" + network + '\'' +
-                ", house='" + house + '\'' +
-                ", price_range='" + price_range + '\'' +
-                ", agebin='" + agebin + '\'' +
-                ", gender='" + gender + '\'' +
-                ", occupation='" + occupation + '\'' +
-                ", country='" + country + '\'' +
-                ", screensize='" + screensize + '\'' +
-                ", income='" + income + '\'' +
-                '}';
+        return "PersonaSummary{" + "row_key='" + row_key + '\'' + ", married='" + married + '\'' + ", agg1='" + agg1 + '\'' + ", agg2='" + agg2 + '\'' + ", imei_count_incr='" + imei_count_incr + '\'' + ", edu='" + edu
+               + '\'' + ", mnt='" + mnt + '\'' + ", carrier='" + carrier + '\'' + ", sysver='" + sysver + '\'' + ", brand_name='" + brand_name + '\'' + ", kids='" + kids + '\'' + ", brand='" + brand + '\'' + ", model='"
+               + model + '\'' + ", segment='" + segment + '\'' + ", price='" + price + '\'' + ", car='" + car + '\'' + ", province='" + province + '\'' + ", imei_count='" + imei_count + '\'' + ", network='" + network
+               + '\'' + ", house='" + house + '\'' + ", price_range='" + price_range + '\'' + ", agebin='" + agebin + '\'' + ", gender='" + gender + '\'' + ", occupation='" + occupation + '\'' + ", country='" + country
+               + '\'' + ", screensize='" + screensize + '\'' + ", income='" + income + '\'' + '}';
     }
 
     public PersonaSummary_final(String model, String brand, String price_range, String country, String province, String mnt) {

@@ -1,10 +1,14 @@
 package com.uuzu.mktgo.service;
 
-import com.uuzu.mktgo.elasticsearch.BrandFansSummary;
-import com.uuzu.mktgo.elasticsearch.BrandFansSummaryRepository;
-import com.uuzu.mktgo.mapper.DateMonthMapper;
-import com.uuzu.mktgo.pojo.*;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Future;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -17,12 +21,12 @@ import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
+import com.uuzu.mktgo.elasticsearch.BrandFansSummary;
+import com.uuzu.mktgo.elasticsearch.BrandFansSummaryRepository;
+import com.uuzu.mktgo.mapper.DateMonthMapper;
+import com.uuzu.mktgo.pojo.BaseModel;
+import com.uuzu.mktgo.pojo.FansPortraitModel;
+import com.uuzu.mktgo.pojo.OperationEnum;
 
 /**
  * Created by shieh on 2017/10/18.
@@ -31,21 +35,19 @@ import java.util.concurrent.Future;
 @Slf4j
 public class FansPortraitService {
 
-    private static String NULLSRT = "NIL";
+    private static String       NULLSRT     = "NIL";
     private static final String HBASE_TABLE = "brand_fans_summary_prod";
     @Autowired
-    private HbaseService hbaseService;
+    private HbaseService        hbaseService;
     @Autowired
-    DateMonthMapper dateMonthMapper;
+    DateMonthMapper             dateMonthMapper;
     @Autowired
-    DictInfoService dictInfoService;
+    DictInfoService             dictInfoService;
 
     @Autowired
-    BrandFansSummaryRepository brandFansSummaryRepository;
-
+    BrandFansSummaryRepository  brandFansSummaryRepository;
 
     /**
-     *
      * @param brand
      * @param model
      * @param price
@@ -54,14 +56,13 @@ public class FansPortraitService {
      * @return
      * @throws Exception
      */
-    public FansPortraitModel fansPortrait(String brand, String model, String price, String country,
-                                           String province) throws Exception{
+    public FansPortraitModel fansPortrait(String brand, String model, String price, String country, String province) throws Exception {
         FansPortraitModel fansPortraitModel = new FansPortraitModel();
 
-        //获取最大日期
+        // 获取最大日期
         String maxMonth = dateMonthMapper.queryMaxMonth();
 
-        //条件
+        // 条件
         BrandFansSummary brandFansSummary = new BrandFansSummary(country, brand, province, maxMonth);
 
         CompletionService completionService = new ExecutorCompletionService(threadPoolTaskExecutor);
@@ -81,16 +82,14 @@ public class FansPortraitService {
 
         for (int i = 0; i < 12; i++) {
             Future<String> future = completionService.take();
-//            log.info("thread======:" + future.get());
+            // log.info("thread======:" + future.get());
         }
 
         return fansPortraitModel;
 
     }
 
-
     /**
-     *
      * @param fansPortraitModel
      * @param map
      * @param countfield
@@ -99,18 +98,17 @@ public class FansPortraitService {
      * @throws IllegalAccessException
      */
     private FansPortraitModel convertModelByFieldAndMap(FansPortraitModel fansPortraitModel, Map<String, String> map, String countfield) throws NoSuchFieldException, IllegalAccessException {
-        //获取所有的字典
+        // 获取所有的字典
         Map<String, Map<String, String>> dictInfo = dictInfoService.getDictInfo();
 
-
         long sum = 0l;
-        //sum
+        // sum
         for (String key : map.keySet()) {
             if (StringUtils.equals("other", key)) continue;
             sum += Long.parseLong(map.get(key));
         }
 
-        //计算比例并且将相应的key转成中文
+        // 计算比例并且将相应的key转成中文
         List<BaseModel> baseModels = new ArrayList<>();
         for (String key : map.keySet()) {
             if (StringUtils.equals("other", key)) continue;
@@ -124,6 +122,7 @@ public class FansPortraitService {
         }
 
         Collections.sort(baseModels, new Comparator<BaseModel>() {
+
             @Override
             public int compare(BaseModel o1, BaseModel o2) {
                 if (o1.getValue() < o2.getValue()) {
@@ -140,8 +139,7 @@ public class FansPortraitService {
             baseModels = baseModels.subList(0, 10);
         }
 
-
-        //通过字段反射设置对象的值
+        // 通过字段反射设置对象的值
         if (map != null) {
             Field field = fansPortraitModel.getClass().getDeclaredField(countfield);
             field.setAccessible(true);
@@ -158,9 +156,9 @@ public class FansPortraitService {
      */
     class Task implements Callable {
 
-        private BrandFansSummary brandFansSummary;
-        private String countfield;
-        private String field;
+        private BrandFansSummary  brandFansSummary;
+        private String            countfield;
+        private String            field;
         private FansPortraitModel fansPortraitModel;
 
         public Task(BrandFansSummary brandFansSummary, String countfield, String field, FansPortraitModel fansPortraitModel) {
@@ -173,11 +171,11 @@ public class FansPortraitService {
         @Override
         public String call() {
             try {
-                //先从es中获取相应的rowkey
+                // 先从es中获取相应的rowkey
                 Map<String, String> esRowKeys = getRowKeyByEs(brandFansSummary, countfield, OperationEnum.EQ.getOperation());
-                //将相应的rowkey从hbase中获取对应的结果
+                // 将相应的rowkey从hbase中获取对应的结果
                 Map<String, String> hbaseResult = hbaseService.getResultByHbaseTable(esRowKeys, field, HBASE_TABLE);
-                //将结果转换并计算百分比
+                // 将结果转换并计算百分比
                 convertModelByFieldAndMap(fansPortraitModel, hbaseResult, countfield);
 
                 return "success";
@@ -189,9 +187,7 @@ public class FansPortraitService {
         }
     }
 
-
     /**
-     *
      * @param brandFansSummary
      * @param countfield
      * @param operation
@@ -226,7 +222,7 @@ public class FansPortraitService {
             boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("province", NULLSRT));
         }
 
-        String[] fields = {"income", "carrier_new", "segment", "agebin", "network_new", "occupation", "edu", "house", "car", "married", "kids", "gender"};
+        String[] fields = { "income", "carrier_new", "segment", "agebin", "network_new", "occupation", "edu", "house", "car", "married", "kids", "gender" };
         for (String field : fields) {
             if (field.equals(countfield)) {
                 boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery(field, NULLSRT));
@@ -238,12 +234,10 @@ public class FansPortraitService {
         }
 
         Pageable pageable = new PageRequest(0, 1000);
-        //SortBuilder sortBuilder  = SortBuilders.fieldSort(sortField).order(SortOrder.ASC);
-        SearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withPageable(pageable)
-                //.withSort(sortBuilder)
-                .withQuery(boolQueryBuilder)
-                .build();
+        // SortBuilder sortBuilder = SortBuilders.fieldSort(sortField).order(SortOrder.ASC);
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withPageable(pageable)
+        // .withSort(sortBuilder)
+        .withQuery(boolQueryBuilder).build();
 
         Page<BrandFansSummary> search = brandFansSummaryRepository.search(searchQuery);
         Map<String, String> result = new HashMap<>();
@@ -255,7 +249,6 @@ public class FansPortraitService {
     }
 
     /**
-     *
      * @param brandFansSummary
      * @param countfield
      * @return

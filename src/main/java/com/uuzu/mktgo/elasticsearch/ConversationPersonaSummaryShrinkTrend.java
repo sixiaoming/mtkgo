@@ -1,8 +1,12 @@
+/*
+ * Copyright 2015-2020 msun.com All right reserved.
+ */
 package com.uuzu.mktgo.elasticsearch;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
@@ -11,6 +15,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 @AllArgsConstructor
 @Document(indexName = "conversation_201711", type = "conversation_dest", shards = 5, refreshInterval = "-1")
 public class ConversationPersonaSummaryShrinkTrend {
+
     @Id
     private String row_key;
     private String brand;
@@ -34,17 +39,7 @@ public class ConversationPersonaSummaryShrinkTrend {
 
     @Override
     public String toString() {
-        return "ConversationPersonaSummaryShrinkTrend{" +
-                "row_key='" + row_key + '\'' +
-                ", brand='" + brand + '\'' +
-                ", country='" + country + '\'' +
-                ", province='" + province + '\'' +
-                ", mnt='" + mnt + '\'' +
-                ", price_range='" + price_range + '\'' +
-                ", model='" + model + '\'' +
-                ", car='" + car + '\'' +
-                ", married='" + married + '\'' +
-                ", house='" + house + '\'' +
-                '}';
+        return "ConversationPersonaSummaryShrinkTrend{" + "row_key='" + row_key + '\'' + ", brand='" + brand + '\'' + ", country='" + country + '\'' + ", province='" + province + '\'' + ", mnt='" + mnt + '\''
+               + ", price_range='" + price_range + '\'' + ", model='" + model + '\'' + ", car='" + car + '\'' + ", married='" + married + '\'' + ", house='" + house + '\'' + '}';
     }
 }

@@ -1,3 +1,6 @@
+/*
+ * Copyright 2015-2020 msun.com All right reserved.
+ */
 package com.uuzu.mktgo.pojo;
 
 import lombok.Data;
@@ -7,6 +10,7 @@ import lombok.Data;
  */
 @Data
 public class OverviewBaseModel {
+
     private String date;
     private double value;
 

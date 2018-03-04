@@ -1,26 +1,22 @@
 package com.uuzu.mktgo.util;
 
-import org.apache.log4j.Logger;
-import org.apache.poi.hssf.usermodel.*;
-import org.apache.poi.ss.util.CellRangeAddress;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+
 /**
- * zhoujin
  * excel 复制HSSFWorkbook
  */
 public class POIUtil {
 
-    private static Logger logger = Logger.getLogger(POIUtil.class);
-
     private POIUtil() {
+
     }
 
     /**
-     * 复制工作表
-     * 此方法主要用于复制2个不同HSSFWorkbook间的工作表
+     * 复制工作表 此方法主要用于复制2个不同HSSFWorkbook间的工作表
      */
     public static void copySheet(HSSFWorkbook fromWorkbook, HSSFWorkbook toWorkbook, int fromSheetIndex, int toSheetIndex) {
         toWorkbook.setSheetName(toSheetIndex, fromWorkbook.getSheetName(fromSheetIndex));
@@ -31,8 +27,7 @@ public class POIUtil {
     }
 
     /**
-     * 复制行
-     * 此方法主要用于复制2个不同HSSFWorkbook间的行
+     * 复制行 此方法主要用于复制2个不同HSSFWorkbook间的行
      */
     public static void copyRows(HSSFWorkbook fromWorkbook, HSSFWorkbook toWorkbook, int fromSheetIndex, int toSheetIndex, int startRow, int endRow, int position) {
         HSSFSheet fromSheet = fromWorkbook.getSheetAt(fromSheetIndex);
@@ -51,8 +46,7 @@ public class POIUtil {
 
         // 拷贝合并的单元格。原理：复制当前合并单元格后，原位置的格式会移动到新位置，需在原位置生成旧格式
         for (CellRangeAddress oldRange : oldRanges) {
-            CellRangeAddress newRange = new CellRangeAddress(oldRange.getFirstRow(), oldRange.getLastRow(),
-                    oldRange.getFirstColumn(), oldRange.getLastColumn());
+            CellRangeAddress newRange = new CellRangeAddress(oldRange.getFirstRow(), oldRange.getLastRow(), oldRange.getFirstColumn(), oldRange.getLastColumn());
 
             if (oldRange.getFirstRow() >= startRow && oldRange.getLastRow() <= endRow) {
                 int targetRowFrom = oldRange.getFirstRow() - startRow + position;
@@ -127,8 +121,7 @@ public class POIUtil {
     }
 
     /**
-     * 复制行
-     * 如果是同一个HSSFWorkbook中的行请用此方法
+     * 复制行 如果是同一个HSSFWorkbook中的行请用此方法
      */
     public static void copyRows(HSSFWorkbook workbook, int fromSheetIndex, int toSheetIndex, int startRow, int endRow, int position) {
         HSSFSheet fromSheet = workbook.getSheetAt(fromSheetIndex);
@@ -147,8 +140,7 @@ public class POIUtil {
 
         // 拷贝合并的单元格。原理：复制当前合并单元格后，原位置的格式会移动到新位置，需在原位置生成旧格式
         for (CellRangeAddress oldRange : oldRanges) {
-            CellRangeAddress newRange = new CellRangeAddress(oldRange.getFirstRow(), oldRange.getLastRow(),
-                    oldRange.getFirstColumn(), oldRange.getLastColumn());
+            CellRangeAddress newRange = new CellRangeAddress(oldRange.getFirstRow(), oldRange.getLastRow(), oldRange.getFirstColumn(), oldRange.getLastColumn());
 
             if (oldRange.getFirstRow() >= startRow && oldRange.getLastRow() <= endRow) {
                 int targetRowFrom = oldRange.getFirstRow() - startRow + position;
@@ -221,8 +213,7 @@ public class POIUtil {
     }
 
     /**
-     * 复制单元格样式
-     * 此方法主要用于复制2个不同HSSFWorkbook间的单元格样式
+     * 复制单元格样式 此方法主要用于复制2个不同HSSFWorkbook间的单元格样式
      */
     public static void copyCellStyle(HSSFWorkbook fromWorkbook, HSSFWorkbook toWorkbook, HSSFCellStyle fromStyle, HSSFCellStyle toStyle) {
         toStyle.setAlignment(fromStyle.getAlignment());
@@ -257,8 +248,7 @@ public class POIUtil {
     }
 
     /**
-     * 复制字体
-     * 此方法主要用于复制2个不同HSSFWorkbook间的字体
+     * 复制字体 此方法主要用于复制2个不同HSSFWorkbook间的字体
      */
     public static void copyFont(HSSFFont fromFont, HSSFFont toFont) {
         toFont.setBoldweight(fromFont.getBoldweight());
@@ -289,6 +279,5 @@ public class POIUtil {
 
         return result.toString();
     }
-
 
 }
